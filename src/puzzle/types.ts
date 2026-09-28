@@ -24,3 +24,8 @@ export interface Puzzle {
   declaredSolution?: string;
   revealedSolution?: string;
 }
+
+export interface Chapter {
+  id: number;
+  puzzles: Puzzle[];
+}

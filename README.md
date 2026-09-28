@@ -12,16 +12,17 @@ npm run puzzles:validate
 npm run build
 ```
 
-The site has no backend. It saves X and ✓ marks in the browser. A completed group can be checked without finishing later groups. **Reset progress** asks for confirmation before clearing markings.
+The site has no backend. It shows one chapter at a time and saves X, ✓, and checked results in the browser. Examples start with their printed answers selected and update correctness immediately when edited. A completed puzzle can be checked without finishing later puzzles. **Reset progress** asks for confirmation before clearing markings; examples return to their printed answers.
 
 ## Edit or create puzzles
 
-The source of truth is `src/content/*.puzzle.md`. Each file contains a group heading, question prompts, A–E values, and a declared solution. `src/puzzle/parser.ts` builds the AST; `evaluator.ts` and `solver.ts` check every complete candidate assignment. The browser uses the computed, validated solution from the same data, with no separate answer key.
+The source of truth is `src/content/chapter-n.puzzle.markdown`. Each chapter file contains its puzzles in display order, with question prompts, A–E values, and declared solutions. `src/puzzle/parser.ts` builds the AST; `evaluator.ts` and `solver.ts` check every complete candidate assignment. The browser uses the computed, validated solution from the same data, with no separate answer key.
 
 Read [PuzzleDSL.md](docs/PuzzleDSL.md) for syntax and examples. Useful commands:
 
 ```bash
 npm run puzzles:solve -- Q14
+npm run puzzles:solve -- src/content/chapter-2.puzzle.markdown
 npm run puzzles:solve -- all
 npm run puzzles:validate
 ```
@@ -30,9 +31,9 @@ Q16's last question has five literal `?` values in the PDF. Those are preserved.
 
 ## Project map
 
-- `src/content/`: puzzle DSL files
+- `src/content/`: one puzzle DSL file per chapter
 - `src/puzzle/`: types, AST parser, evaluator, solver, browser collection, and symbol registry
-- `src/state/`: pure option transitions, persistence, checking, and cooldown
+- `src/state/`: pure option transitions, direct selection, persistence, checking, and cooldown
 - `src/components/`, `src/app.tsx`, `src/styles/`: responsive UI
 - `scripts/`: validation, solving, and itch packaging
 - `docs/`: [DSL](docs/PuzzleDSL.md) and [deployment](docs/Deployment.md)

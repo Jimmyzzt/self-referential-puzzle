@@ -1,4 +1,4 @@
-import { LABELS, type Label, type OptionExpr, type Puzzle, type Question } from './types';
+import { LABELS, type Chapter, type Label, type OptionExpr, type Puzzle, type Question } from './types';
 
 export function parsePrompt(input: string): { kind: 'count'; target: OptionExpr } {
   if (!input.startsWith('#')) throw new Error(`Prompt must start with #: ${input}`);
@@ -76,4 +76,30 @@ export function parsePuzzle(source: string, filename = '<text>'): Puzzle {
     if (value && value.length !== puzzle.questions.length) throw new Error(`${filename}: ${key} length must match question count`);
   }
   return puzzle;
+}
+
+export function parseChapter(source: string, filename = '<text>'): Chapter {
+  const lines = source.split(/\r?\n/);
+  const first = lines.findIndex(line => line.trim().length > 0);
+  const heading = first < 0 ? null : /^# Chapter ([1-9]\d*)$/.exec(lines[first].trim());
+  if (!heading) throw new Error(`${filename}: expected # Chapter n`);
+  const blocks: { line: number; lines: string[] }[] = [];
+  for (let index = first + 1; index < lines.length; index++) {
+    const line = lines[index];
+    if (line.startsWith('## ')) {
+      if (!/^## (Example\s*[1-9]\d*|Q[1-9]\d*)$/.test(line.trim())) {
+        throw new Error(`${filename}:${index + 1}: invalid puzzle heading`);
+      }
+      blocks.push({ line: index + 1, lines: [line.slice(1)] });
+    } else if (blocks.length) {
+      blocks[blocks.length - 1].lines.push(line);
+    } else if (line.trim() && !line.trim().startsWith('<!--')) {
+      throw new Error(`${filename}:${index + 1}: expected ## Example n or ## Qn`);
+    }
+  }
+  if (!blocks.length) throw new Error(`${filename}: chapter contains no puzzles`);
+  const puzzles = blocks.map(block => parsePuzzle(block.lines.join('\n'), `${filename}:${block.line}`));
+  const ids = puzzles.map(puzzle => puzzle.id);
+  if (new Set(ids).size !== ids.length) throw new Error(`${filename}: duplicate puzzle ID`);
+  return { id: Number(heading[1]), puzzles };
 }

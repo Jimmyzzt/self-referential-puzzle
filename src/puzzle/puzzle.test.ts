@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parsePrompt, parsePuzzle } from './parser';
+import { parseChapter, parsePrompt, parsePuzzle } from './parser';
 import { evaluateOption, isSolution } from './evaluator';
 import { solvePuzzle } from './solver';
 import type { Label } from './types';
@@ -22,6 +22,12 @@ describe('DSL and AST', () => {
   it('rejects a missing reference and mixed unknown values', () => {
     expect(() => puzzle(question(1, '#ref(2)', [0,1,2,3,4]))).toThrow(/missing question/);
     expect(() => puzzle('@question 1 #A\nA: ?\nB: 1\nC: 2\nD: 3\nE: 4')).toThrow(/five numbers or five/);
+  });
+  it('keeps multiple puzzles in the chapter source order', () => {
+    const chapter = parseChapter(`# Chapter 2\n\n## Example 6\n${question(1, '#A', [1,0,0,0,0])}\n@solution A\n\n## Q11\n${question(1, '#B', [0,1,0,0,0])}\n@solution B`);
+    expect(chapter.id).toBe(2);
+    expect(chapter.puzzles.map(item => item.id)).toEqual(['Example6', 'Q11']);
+    expect(() => parseChapter('# Chapter 1\n## Q1\n@question 1 #A\nA: 1')).toThrow(/missing B/);
   });
 });
 
