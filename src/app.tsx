@@ -69,6 +69,7 @@ export default function App() {
   const [checked, setChecked] = useState<CheckedAnswers>(() => readChecked(progress));
   const [chapterIndex, setChapterIndex] = useState(0);
   const [statusOpen, setStatusOpen] = useState(() => !window.matchMedia('(max-width: 1050px)').matches);
+  const [showHeaderProgress, setShowHeaderProgress] = useState(false);
   const [muted, setMuted] = useState(readMuted);
   const [notice, setNotice] = useState('');
   const [flashIds, setFlashIds] = useState<string[]>([]);
@@ -76,6 +77,8 @@ export default function App() {
   const [now, setNow] = useState(Date.now());
   const noticeTimer = useRef<number | undefined>(undefined);
   const flashTimer = useRef<number | undefined>(undefined);
+  const headerRef = useRef<HTMLElement | null>(null);
+  const statusRef = useRef<HTMLElement | null>(null);
   const chapter = chapters[chapterIndex];
 
   useEffect(() => {
@@ -96,6 +99,21 @@ export default function App() {
     window.clearTimeout(noticeTimer.current);
     window.clearTimeout(flashTimer.current);
   }, []);
+  useEffect(() => {
+    const updateHeaderProgress = () => {
+      const mobile = window.matchMedia('(max-width: 760px)').matches;
+      const headerBottom = headerRef.current?.getBoundingClientRect().bottom;
+      const statusBottom = statusRef.current?.getBoundingClientRect().bottom;
+      setShowHeaderProgress(mobile && headerBottom !== undefined && statusBottom !== undefined && statusBottom <= headerBottom);
+    };
+    updateHeaderProgress();
+    window.addEventListener('scroll', updateHeaderProgress, { passive: true });
+    window.addEventListener('resize', updateHeaderProgress);
+    return () => {
+      window.removeEventListener('scroll', updateHeaderProgress);
+      window.removeEventListener('resize', updateHeaderProgress);
+    };
+  }, [chapterIndex, statusOpen]);
 
   function temporaryNotice(message: string) {
     setNotice(message);
@@ -176,16 +194,17 @@ export default function App() {
   const cooldownSeconds = Math.max(0, Math.ceil((cooldownUntil - now) / 1000));
 
   return <>
-    <header className="site-header" id="top">
+    <header className={`site-header ${showHeaderProgress ? 'site-header--progress' : ''}`} id="top" ref={headerRef}>
       <div className="header-inner">
-        <a className="brand" href="#top">My Self-Referntial Puzzle Book</a>
+        <a className="brand" href="#top">My Self-Referential Puzzle Book</a>
         <nav className="top-nav" aria-label="Main navigation">
           <select className="chapter-select" value={chapterIndex} onChange={event => changeChapter(Number(event.target.value))} aria-label="Select chapter">
             {chapters.map((item, index) => <option value={index} key={item.id}>Chapter {String(item.id).padStart(2, '0')}</option>)}
           </select>
-          <a href="#about">About</a>
-          <a href={ITCH_URL} target="_blank" rel="noreferrer">itch.io ↗</a>
-          <a href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub ↗</a>
+          <a className="header-secondary" href="#about">About</a>
+          <a className="header-secondary" href={ITCH_URL} target="_blank" rel="noreferrer">itch.io ↗</a>
+          <a className="header-secondary" href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub ↗</a>
+          <span className="header-progress" role="status" aria-label={`${completed} of ${chapter.puzzles.length} puzzles completed`}><strong>{completed}</strong><span>/{chapter.puzzles.length}</span><span className="header-progress-check" aria-hidden="true">✓</span></span>
         </nav>
       </div>
     </header>
@@ -197,18 +216,15 @@ export default function App() {
           <p className="hero-subtitle">A little book of questions that seem to know each other.</p>
           <ul className="meta-points"><li>Each puzzle has a unique solution.</li><li>The same rules apply throughout.</li></ul>
           <p className="play-instruction">Tap once for <b className="red-x">×</b>. Tap again for <b className="green-check">✓</b>.</p>
-          <a className="game-jam-pdf" href={PDF_URL} target="_blank" rel="noreferrer">Game jam PDF ↗</a>
         </div>
         <div className="hero-side">
           <a className="cover-link" href={PDF_URL} target="_blank" rel="noreferrer" aria-label="Open the game jam PDF"><img className="cover-image" src={COVER_URL} alt="Original game jam cover for the puzzle book" /></a>
-          <div className="hero-chapters" aria-label="Choose chapter">
-            {chapters.map((item, index) => <button type="button" key={item.id} aria-label={`Chapter ${item.id}`} aria-pressed={index === chapterIndex} onClick={() => changeChapter(index)}>{String(item.id).padStart(2, '0')}</button>)}
-          </div>
+          <a className="game-jam-pdf" href={PDF_URL} target="_blank" rel="noreferrer">Game jam PDF ↗</a>
         </div>
       </section>
 
       <div className="chapter-shell">
-      <aside className={`chapter-status ${statusOpen ? 'is-open' : 'is-closed'}`} aria-label="Chapter progress">
+      <aside className={`chapter-status ${statusOpen ? 'is-open' : 'is-closed'}`} aria-label="Chapter progress" ref={statusRef}>
         <button type="button" className="status-toggle" aria-expanded={statusOpen} aria-controls="status-list" onClick={() => setStatusOpen(value => !value)}>
           <strong>{completed}<span> / {chapter.puzzles.length}</span></strong><span className="status-chevron" aria-hidden="true">{statusOpen ? '⌃' : '⌄'}</span>
         </button>
@@ -247,7 +263,7 @@ export default function App() {
       <section className="about" id="about" aria-labelledby="about-heading">
         <h2 id="about-heading">About</h2>
         <p>Inspired by <a href="https://www.brainzilla.com/logic/self-referential-quiz/" target="_blank" rel="noreferrer">Brainzilla's Self-Referential Quiz</a>. Special thanks to xxuurruuii for helping shape this into a playable puzzle.</p>
-        <p>Looking forward to your feedback!</p>
+        <p>Looking forward to your feedback! <a href={ITCH_URL} target="_blank" rel="noreferrer">Visit the itch.io page ↗</a></p>
         <div className="settings"><button type="button" onClick={() => setMuted(value => !value)} aria-pressed={muted}>{muted ? 'Sound off' : 'Sound on'}</button><button type="button" onClick={reset}>Reset progress</button></div>
       </section>
     </main>

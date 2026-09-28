@@ -21,6 +21,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .top-nav a { text-decoration: none; color: #405c50; font-size: 13px; font-weight: 750; white-space: nowrap; }
 .top-nav a:hover, .game-jam-pdf:hover, .about a:hover { text-decoration: underline; }
 .chapter-select { min-width: 142px; min-height: 44px; padding: 9px 12px; border: 1px solid #c7d4c8; border-radius: 4px; background: #fffdf8; color: #285a4d; font-size: 13px; font-weight: 750; cursor: pointer; }
+.header-progress { display: none; align-items: baseline; gap: 2px; color: #285f52; white-space: nowrap; }
+.header-progress strong { font: normal 27px/1 Georgia,serif; }
+.header-progress > span { font-size: 15px; }
+.header-progress .header-progress-check { margin-left: 9px; font-size: 26px; font-weight: 800; }
 
 .hero { max-width: 1080px; margin: auto; padding: 35px 25px 38px; display: grid; grid-template-columns: minmax(0,1fr) 320px; gap: 55px; align-items: start; }
 .hero-copy { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
@@ -33,15 +37,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .play-instruction { margin: 20px 0 0; color: #52675a; }
 .red-x { color: #b45548; font-size: 19px; }
 .green-check { color: #27775a; font-size: 19px; }
-.game-jam-pdf { margin-top: 24px; font-size: 12px; font-weight: 800; text-underline-offset: 3px; color: #315e4e; }
-.hero-side { justify-self: end; width: 100%; display: flex; flex-direction: column; align-items: flex-end; gap: 14px; }
+.game-jam-pdf { font-size: 12px; font-weight: 800; text-underline-offset: 3px; color: #315e4e; }
+.hero-side { justify-self: end; width: 100%; display: flex; flex-direction: column; align-items: flex-end; gap: 9px; }
 .cover-link { display: block; width: 100%; border-radius: 4px; }
 .cover-link:hover .cover-image { border-color: #a9c5b0; }
 .cover-image { display: block; width: 100%; max-height: 232px; object-fit: contain; background: #fff; border: 1px solid #e7dfd4; border-radius: 4px; box-shadow: 0 8px 22px #544c3d15; }
-.hero-chapters { display: flex; align-items: center; gap: 8px; }
-.hero-chapters button { min-width: 43px; min-height: 37px; padding: 5px 9px; border: 1px solid #b9cabb; border-radius: 4px; background: #fffdf8; color: #3a6958; font-weight: 800; cursor: pointer; }
-.hero-chapters button[aria-pressed="true"] { background: #2a6353; border-color: #2a6353; color: white; }
-.hero-chapters button:hover:not([aria-pressed="true"]) { background: #e9f0e6; }
 
 .chapter-shell { width: 100%; display: grid; grid-template-columns: minmax(0,1fr) minmax(0,836px) minmax(0,1fr); }
 .chapter-status { grid-column: 3; grid-row: 1; position: sticky; z-index: 20; top: 76px; justify-self: start; align-self: start; width: 170px; margin: 27px 0 0 18px; background: #fffdf8; border: 1px solid #dcdace; border-radius: 6px; box-shadow: 0 10px 30px #3546381b; }
@@ -144,14 +144,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .top-nav { width: 100%; margin-left: 0; justify-content: space-between; gap: 8px; }
   .top-nav a, .chapter-select { font-size: 11px; }
   .chapter-select { min-width: 120px; }
+  .site-header--progress .header-secondary { display: none; }
+  .site-header--progress .header-progress { display: flex; }
   .chapter-content, .puzzle-group, .about { scroll-margin-top: 106px; }
   .chapter-status { margin-right: 10px; max-width: calc(100vw - 20px); }
   .hero { grid-template-columns: 1fr; gap: 17px; padding: 34px 20px 29px; }
   .hero h1 { max-width: 600px; font-size: clamp(36px,7vw,48px); }
-  .hero-side { flex-direction: row-reverse; justify-content: flex-start; align-items: flex-end; width: 100%; }
+  .hero-side { align-items: flex-end; width: 100%; }
   .cover-link { width: auto; }
   .cover-image { width: auto; max-width: min(60vw,245px); max-height: 150px; }
-  .hero-chapters { align-self: flex-end; }
   .chapter-content { width: min(100% - 22px,836px); padding-top: 24px; }
   .puzzle-group--questions-1, .puzzle-group--questions-2, .puzzle-group--questions-3 { max-width: min(100%,540px); }
   .question-grid { grid-template-columns: repeat(auto-fit,minmax(min(100%,205px),240px)); }
@@ -163,7 +164,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .hero-subtitle { font-size: 14px; }
   .meta-points, .play-instruction { font-size: 12px; }
   .cover-image { max-width: 58vw; max-height: 125px; }
-  .hero-chapters button { min-width: 39px; }
   .chapter-content { width: calc(100% - 20px); }
   .puzzle-group { padding: 13px; }
   .question-grid { grid-template-columns: 1fr; }
