@@ -25,3 +25,10 @@ export function clickOption(marking: QuestionMarking, label: Label): QuestionMar
     selected: state === 'manual-X' ? label : null,
   };
 }
+
+export function selectOption(marking: QuestionMarking, label: Label | null): QuestionMarking {
+  return {
+    manualX: marking.manualX.filter(option => option !== label),
+    selected: label,
+  };
+}

@@ -1,21 +1,35 @@
 import { useEffect, useRef, useState } from 'react';
-import { puzzles, verifiedSolutions } from './puzzle/book';
-import type { Label } from './puzzle/types';
+import { chapters, puzzles, verifiedSolutions } from './puzzle/book';
+import type { Label, Puzzle } from './puzzle/types';
 import { PuzzleGroup } from './components/PuzzleGroup';
-import { clickOption } from './state/markings';
-import { clearProgress, freshProgress, restoreProgress, saveProgress, STORAGE_KEY, type Progress } from './state/persistence';
-import { beginCooldown, canCheck, checkCompleted, type CheckResult } from './state/checker';
+import { clickOption, selectOption } from './state/markings';
+import { clearProgress, freshProgress, migrateLegacyProgress, restoreProgress, saveProgress, LEGACY_STORAGE_KEY, STORAGE_KEY, type Progress } from './state/persistence';
+import { beginCooldown, canCheck, checkCompleted } from './state/checker';
+import { CHECKED_KEY, currentAnswer, puzzleStatus, restoreChecked, type CheckedAnswers } from './state/feedback';
 
 const MUTE_KEY = 'self-referential-puzzle-muted-v1';
+const PDF_URL = `${import.meta.env.BASE_URL}Printable-Puzzle-Book.pdf`;
+const COVER_URL = `${import.meta.env.BASE_URL}itch-cover.png`;
+const ITCH_URL = 'https://jimmyzzt.itch.io/my-self-referencial-puzzle';
+const GITHUB_URL = 'https://github.com/Jimmyzzt/self-referential-puzzle';
 
 function readProgress(): Progress {
-  try { return restoreProgress(localStorage.getItem(STORAGE_KEY), puzzles); }
-  catch { return freshProgress(puzzles); }
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved === null
+      ? migrateLegacyProgress(localStorage.getItem(LEGACY_STORAGE_KEY), puzzles)
+      : restoreProgress(saved, puzzles);
+  } catch { return freshProgress(puzzles); }
 }
 
 function readMuted(): boolean {
   try { return localStorage.getItem(MUTE_KEY) === 'true'; }
   catch { return false; }
+}
+
+function readChecked(progress: Progress): CheckedAnswers {
+  try { return restoreChecked(localStorage.getItem(CHECKED_KEY), puzzles, progress); }
+  catch { return {}; }
 }
 
 function playFeedback(kind: 'correct' | 'wrong') {
@@ -39,19 +53,37 @@ function playFeedback(kind: 'correct' | 'wrong') {
   window.setTimeout(() => { void context.close(); }, 450);
 }
 
+function CheckButton({ disabled, seconds, onClick, className = '' }: {
+  disabled: boolean;
+  seconds: number;
+  onClick: () => void;
+  className?: string;
+}) {
+  return <button type="button" className={`check-button ${className}`} disabled={disabled} onClick={onClick}>
+    {disabled ? `Check in ${seconds}s` : 'Check answers'}
+  </button>;
+}
+
 export default function App() {
   const [progress, setProgress] = useState<Progress>(readProgress);
+  const [checked, setChecked] = useState<CheckedAnswers>(() => readChecked(progress));
+  const [chapterIndex, setChapterIndex] = useState(0);
+  const [statusOpen, setStatusOpen] = useState(() => !window.matchMedia('(max-width: 1050px)').matches);
   const [muted, setMuted] = useState(readMuted);
-  const [feedback, setFeedback] = useState<CheckResult>({});
   const [notice, setNotice] = useState('');
+  const [flashIds, setFlashIds] = useState<string[]>([]);
   const [cooldownUntil, setCooldownUntil] = useState(0);
   const [now, setNow] = useState(Date.now());
   const noticeTimer = useRef<number | undefined>(undefined);
-  const feedbackTimer = useRef<number | undefined>(undefined);
+  const flashTimer = useRef<number | undefined>(undefined);
+  const chapter = chapters[chapterIndex];
 
   useEffect(() => {
     try { saveProgress(localStorage, progress); } catch { /* Storage is optional. */ }
   }, [progress]);
+  useEffect(() => {
+    try { localStorage.setItem(CHECKED_KEY, JSON.stringify(checked)); } catch { /* Storage is optional. */ }
+  }, [checked]);
   useEffect(() => {
     try { localStorage.setItem(MUTE_KEY, String(muted)); } catch { /* Storage is optional. */ }
   }, [muted]);
@@ -62,13 +94,23 @@ export default function App() {
   }, [cooldownUntil, now]);
   useEffect(() => () => {
     window.clearTimeout(noticeTimer.current);
-    window.clearTimeout(feedbackTimer.current);
+    window.clearTimeout(flashTimer.current);
   }, []);
 
-  function setTemporaryNotice(message: string) {
+  function temporaryNotice(message: string) {
     setNotice(message);
     window.clearTimeout(noticeTimer.current);
     noticeTimer.current = window.setTimeout(() => setNotice(''), 3500);
+  }
+
+  function clearChecked(puzzleId: string) {
+    setChecked(previous => {
+      if (!(puzzleId in previous)) return previous;
+      const next = { ...previous };
+      delete next[puzzleId];
+      return next;
+    });
+    setFlashIds(previous => previous.filter(id => id !== puzzleId));
   }
 
   function mark(puzzleId: string, questionIndex: number, label: Label) {
@@ -76,11 +118,16 @@ export default function App() {
       ...previous,
       [puzzleId]: previous[puzzleId].map((marking, index) => index === questionIndex ? clickOption(marking, label) : marking),
     }));
-    setFeedback(previous => {
-      const next = { ...previous };
-      delete next[puzzleId];
-      return next;
-    });
+    clearChecked(puzzleId);
+  }
+
+  function enterAnswer(puzzleId: string, questionIndex: number, label: Label | null) {
+    if (progress[puzzleId][questionIndex].selected === label) return;
+    setProgress(previous => ({
+      ...previous,
+      [puzzleId]: previous[puzzleId].map((marking, index) => index === questionIndex ? selectOption(marking, label) : marking),
+    }));
+    clearChecked(puzzleId);
   }
 
   function checkAnswers() {
@@ -88,73 +135,123 @@ export default function App() {
     if (!canCheck(timestamp, cooldownUntil)) return;
     setNow(timestamp);
     setCooldownUntil(beginCooldown(timestamp));
-    const result = checkCompleted(puzzles, verifiedSolutions, progress);
-    setFeedback({});
-    window.clearTimeout(feedbackTimer.current);
-    if (!Object.keys(result).length) {
-      setTemporaryNotice('Finish every question in a puzzle first.');
+    const result = checkCompleted(chapter.puzzles.filter(puzzle => puzzle.type !== 'example'), verifiedSolutions, progress);
+    const ids = Object.keys(result);
+    setFlashIds(ids);
+    window.clearTimeout(flashTimer.current);
+    flashTimer.current = window.setTimeout(() => setFlashIds([]), 700);
+    if (!ids.length) {
+      temporaryNotice('Finish a puzzle in this chapter first.');
       return;
     }
-    window.requestAnimationFrame(() => setFeedback(result));
+    setChecked(previous => ({
+      ...previous,
+      ...Object.fromEntries(ids.map(id => [id, currentAnswer(progress, puzzles.find(puzzle => puzzle.id === id)!)!])),
+    }));
     const correct = Object.values(result).filter(value => value === 'correct').length;
-    const wrong = Object.keys(result).length - correct;
-    setTemporaryNotice(wrong ? `${correct} right · ${wrong} to revisit` : `${correct} puzzle${correct === 1 ? '' : 's'} looking good!`);
+    const wrong = ids.length - correct;
+    temporaryNotice(wrong ? `${correct} right · ${wrong} to revisit` : `${correct} puzzle${correct === 1 ? '' : 's'} looking good!`);
     if (!muted) playFeedback(wrong ? 'wrong' : 'correct');
     if (!wrong && typeof navigator.vibrate === 'function') navigator.vibrate(30);
-    feedbackTimer.current = window.setTimeout(() => setFeedback({}), 2600);
   }
 
   function reset() {
     if (!window.confirm('Reset all your X and ✓ marks? This cannot be undone.')) return;
-    try { clearProgress(localStorage); } catch { /* Storage is optional. */ }
+    try { clearProgress(localStorage); localStorage.removeItem(CHECKED_KEY); } catch { /* Storage is optional. */ }
     setProgress(freshProgress(puzzles));
-    setFeedback({});
-    setTemporaryNotice('Progress reset.');
+    setChecked({});
+    setFlashIds([]);
+    temporaryNotice('Progress reset.');
   }
 
-  const completed = puzzles.filter(puzzle => progress[puzzle.id]?.every(marking => marking.selected)).length;
+  function changeChapter(index: number) {
+    if (index < 0 || index >= chapters.length) return;
+    setChapterIndex(index);
+    setStatusOpen(!window.matchMedia('(max-width: 1050px)').matches);
+    window.requestAnimationFrame(() => document.getElementById('chapter-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }
+
+  const statuses = chapter.puzzles.map(puzzle => ({ puzzle, status: puzzleStatus(puzzle, progress, verifiedSolutions, checked) }));
+  const completed = statuses.filter(item => item.status !== 'pending').length;
   const cooldownSeconds = Math.max(0, Math.ceil((cooldownUntil - now) / 1000));
-  const examples = puzzles.filter(puzzle => puzzle.type === 'example');
-  const first = puzzles.filter(puzzle => /^Q([1-6])$/.test(puzzle.id));
-  const middle = puzzles.filter(puzzle => /^Q(7|8|9|10|11|12)$/.test(puzzle.id));
-  const last = puzzles.filter(puzzle => /^Q(13|14|15|16)$/.test(puzzle.id));
 
   return <>
     <header className="site-header" id="top">
       <div className="header-inner">
-        <span className="brand-mark" aria-hidden="true">#</span>
-        <a className="brand" href="#top">Self-Referential Puzzle Book</a>
+        <a className="brand" href="#top">My Self-Ref Puzzle Book</a>
         <nav className="top-nav" aria-label="Main navigation">
-          <a href="#examples">Examples</a><a href="#puzzles">Puzzles</a><a href="#about">About</a>
+          <label className="chapter-select">Chapter <select value={chapterIndex} onChange={event => changeChapter(Number(event.target.value))} aria-label="Select chapter">
+            {chapters.map((item, index) => <option value={index} key={item.id}>{String(item.id).padStart(2, '0')}</option>)}
+          </select></label>
+          <a href="#about">About</a>
+          <a href={ITCH_URL} target="_blank" rel="noreferrer">itch.io ↗</a>
+          <a href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub ↗</a>
         </nav>
       </div>
     </header>
+
     <main>
       <section className="hero" aria-labelledby="page-title">
         <div className="hero-copy">
-          <span className="eyebrow">A small rule-discovery puzzle</span>
-          <h1 id="page-title">Made My Own<br /><em>Self-Referential</em><br />Puzzle Book</h1>
+          <h1 id="page-title">Made My Own <em>Self-Referential</em> Puzzle Book</h1>
           <p className="hero-subtitle">A little book of questions that seem to know each other.</p>
-          <div className="meta-strip"><span>Each puzzle has a unique solution.</span><span>The same rules apply throughout.</span></div>
-          <div className="hero-actions"><a className="primary-link" href="#examples">Start with the examples <span aria-hidden="true">↗</span></a><a className="text-link" href={`${import.meta.env.BASE_URL}Printable-Puzzle-Book.pdf`} target="_blank" rel="noreferrer">Printable PDF ↗</a></div>
+          <p className="meta-line">Each puzzle has a unique solution. &nbsp; The same rules apply throughout.</p>
+          <div className="how-to"><strong>HOW TO PLAY 🤔</strong><p>Tap once for <b className="red-x">×</b>. Tap again for <b className="green-check">✓</b>.</p></div>
+          <a className="game-jam-pdf" href={PDF_URL} target="_blank" rel="noreferrer">Game jam PDF ↗</a>
         </div>
-        <div className="hero-art" aria-hidden="true"><div className="art-card art-card--back">#<span>?</span></div><div className="art-card art-card--front"><span className="art-label">QUESTION 01</span><strong>#C</strong><span className="art-lines">A <i /> 2<br />B <i /> 0<br />C <i /> 2</span><span className="art-stamp">FIGURE IT OUT</span></div></div>
+        <div className="hero-side">
+          <img className="cover-image" src={COVER_URL} alt="Original game jam cover for the puzzle book" />
+          <div className="hero-chapters" aria-label="Choose chapter">
+            {chapters.map((item, index) => <button type="button" key={item.id} aria-label={`Chapter ${item.id}`} aria-pressed={index === chapterIndex} onClick={() => changeChapter(index)}>{String(item.id).padStart(2, '0')}</button>)}
+          </div>
+        </div>
       </section>
-      <div className="book-layout">
-        <aside className="book-sidebar" aria-label="Book guide">
-          <div className="sidebar-card"><span className="sidebar-label">HOW TO PLAY</span><p>Figure out what it all means <span aria-hidden="true">🤔</span></p><span className="sidebar-rule" /><p className="small-copy">Tap once for <b className="red-x">×</b>. Tap again for <b className="green-check">✓</b>. Check a puzzle when all its questions have a check.</p></div>
-          <div className="sidebar-progress"><span className="sidebar-label">YOUR PAGE</span><strong>{completed}<span> / {puzzles.length}</span></strong><small>puzzles ready to check</small></div>
-          <a className="sidebar-pdf" href={`${import.meta.env.BASE_URL}Printable-Puzzle-Book.pdf`} target="_blank" rel="noreferrer">↗ Printable PDF</a>
-        </aside>
-        <div className="book-content">
-          <section className="book-section" id="examples" aria-labelledby="examples-heading"><div className="section-heading"><span className="chapter-index">01 / THE BEGINNING</span><h2 id="examples-heading">Examples</h2><p>Seven little hints. The answers are shown, but the reason is yours to find.</p></div><div className="groups">{examples.map(puzzle => <PuzzleGroup key={puzzle.id} puzzle={puzzle} markings={progress[puzzle.id]} feedback={feedback[puzzle.id]} onOptionClick={(index, label) => mark(puzzle.id, index, label)} />)}</div></section>
-          <section className="book-section" id="puzzles" aria-labelledby="puzzles-heading"><div className="section-heading"><span className="chapter-index">02 / YOUR TURN</span><h2 id="puzzles-heading">The puzzles</h2><p>Start small. Every option is a possibility until you decide otherwise.</p></div><div className="groups">{first.map(puzzle => <PuzzleGroup key={puzzle.id} puzzle={puzzle} markings={progress[puzzle.id]} feedback={feedback[puzzle.id]} onOptionClick={(index, label) => mark(puzzle.id, index, label)} />)}</div></section>
-          <section className="book-section" aria-labelledby="more-heading"><div className="section-heading"><span className="chapter-index">03 / A LITTLE DEEPER</span><h2 id="more-heading">More to consider</h2></div><div className="groups">{middle.map(puzzle => <PuzzleGroup key={puzzle.id} puzzle={puzzle} markings={progress[puzzle.id]} feedback={feedback[puzzle.id]} onOptionClick={(index, label) => mark(puzzle.id, index, label)} />)}</div></section>
-          <section className="book-section" aria-labelledby="last-heading"><div className="section-heading"><span className="chapter-index">04 / FULL CIRCLE</span><h2 id="last-heading">The last pages</h2></div><div className="groups">{last.map(puzzle => <PuzzleGroup key={puzzle.id} puzzle={puzzle} markings={progress[puzzle.id]} feedback={feedback[puzzle.id]} onOptionClick={(index, label) => mark(puzzle.id, index, label)} />)}</div></section>
-          <section className="about" id="about" aria-labelledby="about-heading"><span className="chapter-index">ABOUT THIS BOOK</span><h2 id="about-heading">Made for curious minds.</h2><p>Inspired by <a href="https://www.brainzilla.com/logic/self-referential-quiz/" target="_blank" rel="noreferrer">Brainzilla's Self-Referential Quiz</a>. Special thanks to xxuurruuii for helping shape this into a playable puzzle.</p><p>Looking forward to your feedback!</p><div className="settings"><button type="button" onClick={() => setMuted(value => !value)} aria-pressed={muted}>{muted ? 'Sound off' : 'Sound on'}</button><button type="button" onClick={reset}>Reset progress</button></div></section>
+
+      <div className="chapter-shell">
+      <aside className={`chapter-status ${statusOpen ? 'is-open' : 'is-closed'}`} aria-label="Chapter progress">
+        <button type="button" className="status-toggle" aria-expanded={statusOpen} aria-controls="status-list" onClick={() => setStatusOpen(value => !value)}>
+          <strong>{completed}<span> / {chapter.puzzles.length}</span></strong><span className="status-chevron" aria-hidden="true">{statusOpen ? '⌃' : '⌄'}</span>
+        </button>
+        <nav className="status-list" id="status-list" aria-label="Jump to a puzzle" hidden={!statusOpen}>
+          {statuses.map(({ puzzle, status }) => <a
+            key={puzzle.id}
+            href={`#${puzzle.id}`}
+            className={`status-link status-link--${status}`}
+            aria-label={`${puzzle.label}: ${status === 'pending' ? 'unfinished' : status === 'ready' ? 'ready to check' : status}`}
+            onClick={() => { if (window.matchMedia('(max-width: 1050px)').matches) setStatusOpen(false); }}
+          ><span>{puzzle.type === 'example' ? `E${puzzle.id.slice(7)}` : puzzle.id}</span><span aria-hidden="true">{status === 'correct' ? '✓' : status === 'wrong' ? '×' : status === 'ready' ? '•' : ''}</span></a>)}
+        </nav>
+      </aside>
+
+      <section className="chapter-content" id="chapter-content" aria-labelledby="chapter-heading">
+        <h2 id="chapter-heading" className="chapter-heading">{String(chapter.id).padStart(2, '0')}</h2>
+        <div className="groups">
+          {statuses.map(({ puzzle, status }) => <PuzzleGroup
+            key={puzzle.id}
+            puzzle={puzzle}
+            markings={progress[puzzle.id]}
+            status={status}
+            flash={flashIds.includes(puzzle.id)}
+            onOptionClick={(index, label) => mark(puzzle.id, index, label)}
+            onAnswerInput={(index, label) => enterAnswer(puzzle.id, index, label)}
+          />)}
         </div>
+        <div className="chapter-footer">
+          <button type="button" className="chapter-arrow" disabled={chapterIndex === 0} onClick={() => changeChapter(chapterIndex - 1)} aria-label="Previous chapter">←</button>
+          <CheckButton disabled={cooldownSeconds > 0} seconds={cooldownSeconds} onClick={checkAnswers} className="check-button--inline" />
+          <button type="button" className="chapter-arrow" disabled={chapterIndex === chapters.length - 1} onClick={() => changeChapter(chapterIndex + 1)} aria-label="Next chapter">→</button>
+        </div>
+      </section>
       </div>
+
+      <section className="about" id="about" aria-labelledby="about-heading">
+        <h2 id="about-heading">About</h2>
+        <p>Inspired by <a href="https://www.brainzilla.com/logic/self-referential-quiz/" target="_blank" rel="noreferrer">Brainzilla's Self-Referential Quiz</a>. Special thanks to xxuurruuii for helping shape this into a playable puzzle.</p>
+        <p>Looking forward to your feedback!</p>
+        <div className="settings"><button type="button" onClick={() => setMuted(value => !value)} aria-pressed={muted}>{muted ? 'Sound off' : 'Sound on'}</button><button type="button" onClick={reset}>Reset progress</button></div>
+      </section>
     </main>
-    <div className="check-dock"><span className="check-notice" role="status" aria-live="polite">{notice}</span><button type="button" className="check-button" disabled={cooldownSeconds > 0} onClick={checkAnswers}>{cooldownSeconds > 0 ? `Check again in ${cooldownSeconds}s` : 'Check answers'} <span aria-hidden="true">↗</span></button></div>
+
+    <div className="check-dock"><span className="check-notice" role="status" aria-live="polite">{notice}</span><CheckButton disabled={cooldownSeconds > 0} seconds={cooldownSeconds} onClick={checkAnswers} /></div>
   </>;
 }
