@@ -21,10 +21,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .top-nav a { text-decoration: none; color: #405c50; font-size: 13px; font-weight: 750; white-space: nowrap; }
 .top-nav a:hover, .game-jam-pdf:hover, .about a:hover { text-decoration: underline; }
 .chapter-select { min-width: 142px; min-height: 44px; padding: 9px 12px; border: 1px solid #c7d4c8; border-radius: 4px; background: #fffdf8; color: #285a4d; font-size: 13px; font-weight: 750; cursor: pointer; }
-.header-progress { display: none; align-items: baseline; gap: 2px; color: #285f52; white-space: nowrap; }
+.header-progress { display: none; min-height: 44px; align-items: center; gap: 2px; padding: 5px 9px; border: 1px solid #c7d4c8; border-radius: 4px; background: #fffdf8; color: #285f52; white-space: nowrap; cursor: pointer; }
 .header-progress strong { font: normal 27px/1 Georgia,serif; }
 .header-progress > span { font-size: 15px; }
-.header-progress .header-progress-check { margin-left: 9px; font-size: 26px; font-weight: 800; }
+.header-progress .header-progress-chevron { margin-left: 8px; font-size: 18px; line-height: 1; }
+.header-progress:hover { background: #e9f0e6; }
 
 .hero { max-width: 1080px; margin: auto; padding: 35px 25px 38px; display: grid; grid-template-columns: minmax(0,1fr) 320px; gap: 55px; align-items: start; }
 .hero-copy { min-width: 0; display: flex; flex-direction: column; align-items: flex-start; }
@@ -52,6 +53,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .status-chevron { font-size: 16px; color: #6b8977; }
 .status-list { padding: 4px 9px 11px; display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 5px; border-top: 1px solid #e8e8df; }
 .status-list[hidden] { display: none; }
+.header-status-list { position: absolute; top: calc(100% + 6px); right: 16px; z-index: 1; width: min(272px,calc(100vw - 32px)); padding: 9px; border: 1px solid #dcdace; border-radius: 5px; background: #fffdf8; box-shadow: 0 10px 30px #3546382b; }
+.header-status-list .status-link { min-height: 44px; padding: 5px; font-size: 11px; }
 .status-link { min-width: 0; min-height: 31px; padding: 3px; display: flex; justify-content: space-between; align-items: center; gap: 1px; border: 1px solid #dedfd5; border-radius: 3px; background: #f9f9f4; color: #667367; text-decoration: none; font-size: 10px; font-weight: 800; }
 .status-link:hover { outline: 2px solid #a1b7a5; outline-offset: 0; }
 .status-link--correct { color: #216b4e; border-color: #a5ceb0; background: #e6f3e6; }

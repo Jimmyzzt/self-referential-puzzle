@@ -70,6 +70,7 @@ export default function App() {
   const [chapterIndex, setChapterIndex] = useState(0);
   const [statusOpen, setStatusOpen] = useState(() => !window.matchMedia('(max-width: 1050px)').matches);
   const [showHeaderProgress, setShowHeaderProgress] = useState(false);
+  const [headerStatusOpen, setHeaderStatusOpen] = useState(false);
   const [muted, setMuted] = useState(readMuted);
   const [notice, setNotice] = useState('');
   const [flashIds, setFlashIds] = useState<string[]>([]);
@@ -104,7 +105,9 @@ export default function App() {
       const mobile = window.matchMedia('(max-width: 760px)').matches;
       const headerBottom = headerRef.current?.getBoundingClientRect().bottom;
       const statusBottom = statusRef.current?.getBoundingClientRect().bottom;
-      setShowHeaderProgress(mobile && headerBottom !== undefined && statusBottom !== undefined && statusBottom <= headerBottom);
+      const covered = mobile && headerBottom !== undefined && statusBottom !== undefined && statusBottom <= headerBottom + 12;
+      setShowHeaderProgress(covered);
+      if (!covered) setHeaderStatusOpen(false);
     };
     updateHeaderProgress();
     window.addEventListener('scroll', updateHeaderProgress, { passive: true });
@@ -114,6 +117,17 @@ export default function App() {
       window.removeEventListener('resize', updateHeaderProgress);
     };
   }, [chapterIndex, statusOpen]);
+  useEffect(() => {
+    if (!headerStatusOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setHeaderStatusOpen(false);
+        document.querySelector<HTMLButtonElement>('.header-progress')?.focus();
+      }
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [headerStatusOpen]);
 
   function temporaryNotice(message: string) {
     setNotice(message);
@@ -186,12 +200,20 @@ export default function App() {
     if (index < 0 || index >= chapters.length) return;
     setChapterIndex(index);
     setStatusOpen(!window.matchMedia('(max-width: 1050px)').matches);
+    setHeaderStatusOpen(false);
     window.requestAnimationFrame(() => document.getElementById('chapter-content')?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }
 
   const statuses = chapter.puzzles.map(puzzle => ({ puzzle, status: puzzleStatus(puzzle, progress, verifiedSolutions, checked) }));
   const completed = statuses.filter(item => item.status !== 'pending').length;
   const cooldownSeconds = Math.max(0, Math.ceil((cooldownUntil - now) / 1000));
+  const statusLinks = (onJump: () => void) => statuses.map(({ puzzle, status }) => <a
+    key={puzzle.id}
+    href={`#${puzzle.id}`}
+    className={`status-link status-link--${status}`}
+    aria-label={`${puzzle.label}: ${status === 'pending' ? 'unfinished' : status === 'ready' ? 'ready to check' : status}`}
+    onClick={onJump}
+  ><span>{puzzle.type === 'example' ? `E${puzzle.id.slice(7)}` : puzzle.id}</span><span aria-hidden="true">{status === 'correct' ? '✓' : status === 'wrong' ? '×' : status === 'ready' ? '•' : ''}</span></a>);
 
   return <>
     <header className={`site-header ${showHeaderProgress ? 'site-header--progress' : ''}`} id="top" ref={headerRef}>
@@ -204,9 +226,12 @@ export default function App() {
           <a className="header-secondary" href="#about">About</a>
           <a className="header-secondary" href={ITCH_URL} target="_blank" rel="noreferrer">itch.io ↗</a>
           <a className="header-secondary" href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub ↗</a>
-          <span className="header-progress" role="status" aria-label={`${completed} of ${chapter.puzzles.length} puzzles completed`}><strong>{completed}</strong><span>/{chapter.puzzles.length}</span><span className="header-progress-check" aria-hidden="true">✓</span></span>
+          <button type="button" className="header-progress" aria-label={`${completed} of ${chapter.puzzles.length} puzzles completed; ${headerStatusOpen ? 'hide' : 'show'} puzzle progress`} aria-expanded={headerStatusOpen} aria-controls="header-status-list" onClick={() => setHeaderStatusOpen(value => !value)}><strong>{completed}</strong><span>/{chapter.puzzles.length}</span><span className="header-progress-chevron" aria-hidden="true">{headerStatusOpen ? '⌃' : '⌄'}</span></button>
         </nav>
       </div>
+      <nav className="status-list header-status-list" id="header-status-list" aria-label="Jump to a puzzle" hidden={!showHeaderProgress || !headerStatusOpen}>
+        {statusLinks(() => setHeaderStatusOpen(false))}
+      </nav>
     </header>
 
     <main>
@@ -229,13 +254,7 @@ export default function App() {
           <strong>{completed}<span> / {chapter.puzzles.length}</span></strong><span className="status-chevron" aria-hidden="true">{statusOpen ? '⌃' : '⌄'}</span>
         </button>
         <nav className="status-list" id="status-list" aria-label="Jump to a puzzle" hidden={!statusOpen}>
-          {statuses.map(({ puzzle, status }) => <a
-            key={puzzle.id}
-            href={`#${puzzle.id}`}
-            className={`status-link status-link--${status}`}
-            aria-label={`${puzzle.label}: ${status === 'pending' ? 'unfinished' : status === 'ready' ? 'ready to check' : status}`}
-            onClick={() => { if (window.matchMedia('(max-width: 1050px)').matches) setStatusOpen(false); }}
-          ><span>{puzzle.type === 'example' ? `E${puzzle.id.slice(7)}` : puzzle.id}</span><span aria-hidden="true">{status === 'correct' ? '✓' : status === 'wrong' ? '×' : status === 'ready' ? '•' : ''}</span></a>)}
+          {statusLinks(() => { if (window.matchMedia('(max-width: 1050px)').matches) setStatusOpen(false); })}
         </nav>
       </aside>
 
