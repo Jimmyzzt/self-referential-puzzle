@@ -178,11 +178,11 @@ export default function App() {
   return <>
     <header className="site-header" id="top">
       <div className="header-inner">
-        <a className="brand" href="#top">My Self-Ref Puzzle Book</a>
+        <a className="brand" href="#top">My Self-Referntial Puzzle Book</a>
         <nav className="top-nav" aria-label="Main navigation">
-          <label className="chapter-select">Chapter <select value={chapterIndex} onChange={event => changeChapter(Number(event.target.value))} aria-label="Select chapter">
-            {chapters.map((item, index) => <option value={index} key={item.id}>{String(item.id).padStart(2, '0')}</option>)}
-          </select></label>
+          <select className="chapter-select" value={chapterIndex} onChange={event => changeChapter(Number(event.target.value))} aria-label="Select chapter">
+            {chapters.map((item, index) => <option value={index} key={item.id}>Chapter {String(item.id).padStart(2, '0')}</option>)}
+          </select>
           <a href="#about">About</a>
           <a href={ITCH_URL} target="_blank" rel="noreferrer">itch.io ↗</a>
           <a href={GITHUB_URL} target="_blank" rel="noreferrer">GitHub ↗</a>
@@ -195,12 +195,12 @@ export default function App() {
         <div className="hero-copy">
           <h1 id="page-title">Made My Own <em>Self-Referential</em> Puzzle Book</h1>
           <p className="hero-subtitle">A little book of questions that seem to know each other.</p>
-          <p className="meta-line">Each puzzle has a unique solution. &nbsp; The same rules apply throughout.</p>
-          <div className="how-to"><strong>HOW TO PLAY 🤔</strong><p>Tap once for <b className="red-x">×</b>. Tap again for <b className="green-check">✓</b>.</p></div>
+          <ul className="meta-points"><li>Each puzzle has a unique solution.</li><li>The same rules apply throughout.</li></ul>
+          <p className="play-instruction">Tap once for <b className="red-x">×</b>. Tap again for <b className="green-check">✓</b>.</p>
           <a className="game-jam-pdf" href={PDF_URL} target="_blank" rel="noreferrer">Game jam PDF ↗</a>
         </div>
         <div className="hero-side">
-          <img className="cover-image" src={COVER_URL} alt="Original game jam cover for the puzzle book" />
+          <a className="cover-link" href={PDF_URL} target="_blank" rel="noreferrer" aria-label="Open the game jam PDF"><img className="cover-image" src={COVER_URL} alt="Original game jam cover for the puzzle book" /></a>
           <div className="hero-chapters" aria-label="Choose chapter">
             {chapters.map((item, index) => <button type="button" key={item.id} aria-label={`Chapter ${item.id}`} aria-pressed={index === chapterIndex} onClick={() => changeChapter(index)}>{String(item.id).padStart(2, '0')}</button>)}
           </div>
@@ -252,6 +252,6 @@ export default function App() {
       </section>
     </main>
 
-    <div className="check-dock"><span className="check-notice" role="status" aria-live="polite">{notice}</span><CheckButton disabled={cooldownSeconds > 0} seconds={cooldownSeconds} onClick={checkAnswers} /></div>
+    <div className="check-dock"><span className="check-notice" role="status" aria-live="polite">{notice}</span><CheckButton disabled={cooldownSeconds > 0} seconds={cooldownSeconds} onClick={checkAnswers} /><button type="button" className="back-to-top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Back to top">↑</button></div>
   </>;
 }
