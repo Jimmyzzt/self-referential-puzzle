@@ -134,7 +134,7 @@ D: 2
 E: 0
 @solution ABB
 
-## Q2-5
+## Q2-A
 
 @question 1 #ref(1)
 A: 3
@@ -158,7 +158,7 @@ D: 1
 E: 2
 @solution DAD
 
-## Q2-6
+## Q2-B
 
 @question 1 #A
 A: 0

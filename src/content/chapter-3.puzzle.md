@@ -115,31 +115,6 @@ E: C
 
 ## Q3-4
 
-@question 1 ref(2)
-A: A
-B: B
-C: C
-D: D
-E: E
-
-@question 2 ref(1)
-A: B
-B: D
-C: C
-D: E
-E: A
-
-@question 3 #ref(1)
-A: 0
-B: 1
-C: 4
-D: 2
-E: 3
-
-@solution CCD
-
-## Q3-5
-
 @question 1 ref(1)
 A: A
 B: D
@@ -163,7 +138,7 @@ E: 4
 
 @solution AAC
 
-## Q3-6
+## Q3-5
 
 @question 1 ref(1)
 A: C
@@ -195,41 +170,80 @@ E: 4
 
 @solution DBBC
 
-## Q3-7
+## Q3-A
 
-@question 1 ref(2)
-A: A
-B: B
-C: C
-D: D
-E: E
+@question 1 ref(3)
+A: B
+B: D
+C: E
+D: A
+E: C
 
-@question 2 ref(1)
+@question 2 ref(4)
 A: D
-B: B
+B: E
+C: B
+D: A
+E: C
+
+@question 3 ref(2)
+A: C
+B: E
+C: B
+D: A
+E: D
+
+@question 4 ref(1)
+A: C
+B: A
+C: B
+D: E
+E: D
+
+@solution CDEA
+
+## Q3-B
+
+@question 1 ref(5)
+A: E
+B: D
+C: A
+D: C
+E: B
+
+@question 2 ref(3)
+A: B
+B: D
 C: C
 D: E
 E: A
 
-@question 3 #ref(1)
-A: 0
-B: 1
-C: 2
+@question 3 #ref(6)
+A: 1
+B: 5
+C: 6
 D: 3
 E: 4
 
-@question 4 ref(3)
-A: A
-B: B
-C: C
-D: D
-E: E
-
-@question 5 #ref(4)
-A: 0
-B: 1
-C: 2
+@question 4 #ref(1)
+A: 5
+B: 6
+C: 5
 D: 3
-E: 4
+E: 5
 
-@solution CCDDC
+@question 5 ref(4)
+A: ?
+B: ?
+C: ?
+D: ?
+E: ?
+
+@question 6 ref(2)
+A: ?
+B: ?
+C: ?
+D: ?
+E: ?
+
+@solution BBDDDB

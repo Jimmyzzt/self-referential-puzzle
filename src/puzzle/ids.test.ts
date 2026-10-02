@@ -20,7 +20,7 @@ describe('chapter selectors', () => {
   });
   it('maps only existing PDF puzzles to their former global IDs', () => {
     expect(legacyPuzzleId(chapters[1].puzzles[1])).toBe('Q11');
-    expect(legacyPuzzleId(chapters[1].puzzles[0])).toBeUndefined();
+    expect(legacyPuzzleId(chapters[1].puzzles[0])).toBe('Q15');
     const third = parseChapter(`# Chapter 3\n${block('## Q3-1')}`).puzzles[0];
     expect(legacyPuzzleId(third)).toBeUndefined();
   });

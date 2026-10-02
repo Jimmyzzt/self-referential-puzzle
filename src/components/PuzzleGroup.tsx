@@ -60,7 +60,7 @@ export function PuzzleGroup({ puzzle, markings, status, flash, onOptionClick, on
   onAnswerInput: (questionIndex: number, label: Label | null) => void;
 }) {
   return <section
-    className={`puzzle-group puzzle-group--questions-${Math.min(puzzle.questions.length, 3)} ${status === 'correct' || status === 'wrong' ? `puzzle-group--${status}` : ''} ${flash ? 'puzzle-group--flash' : ''}`}
+    className={`puzzle-group puzzle-group--questions-${puzzle.questions.length === 4 ? 4 : Math.min(puzzle.questions.length, 3)} ${status === 'correct' || status === 'wrong' ? `puzzle-group--${status}` : ''} ${flash ? 'puzzle-group--flash' : ''}`}
     data-status={status}
     id={puzzle.id}
     aria-labelledby={`${puzzle.id}-title`}

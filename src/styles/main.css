@@ -67,8 +67,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .groups { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 22px; }
 .puzzle-group { width: 100%; margin-inline: auto; padding: 16px; background: #fffdf8; border: 1.5px solid #ddd9cb; border-radius: 6px; box-shadow: 0 5px 16px #554c3d0c; scroll-margin-top: 76px; }
 .puzzle-group--questions-1 { max-width: 290px; }
-.puzzle-group--questions-2, .puzzle-group--questions-3 { grid-column: 1 / -1; }
-.puzzle-group--questions-2 { max-width: 540px; }
+.puzzle-group--questions-2, .puzzle-group--questions-3, .puzzle-group--questions-4 { grid-column: 1 / -1; }
+.puzzle-group--questions-2, .puzzle-group--questions-4 { max-width: 540px; }
 .puzzle-group--questions-3 { max-width: 800px; }
 .puzzle-group--correct { border-color: #389168; box-shadow: 0 5px 17px #32764d16; }
 .puzzle-group--wrong { border-color: #c65b50; box-shadow: 0 5px 17px #b35e5018; }
@@ -80,6 +80,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .puzzle-group--correct .result-seal { color: #126a43; }
 .puzzle-group--wrong .result-seal { color: #ae342e; }
 .question-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,210px),240px)); justify-content: center; gap: 12px; }
+.puzzle-group--questions-4 .question-grid { grid-template-columns: repeat(2,minmax(0,240px)); }
 .question-card { min-width: 0; padding: 13px 12px; background: #faf7ef; border: 1px solid #e7e0d5; border-radius: 4px; }
 .question-head { min-height: 37px; margin-bottom: 10px; display: flex; align-items: center; gap: 9px; }
 .question-index { width: 25px; height: 25px; flex: none; display: grid; place-items: center; border: 1.5px solid #52776a; border-radius: 50%; color: #2d6154; font: 16px Georgia,serif; }
@@ -138,7 +139,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 
 @media (max-width: 850px) {
   .groups { grid-template-columns: 1fr; }
-  .puzzle-group--questions-2, .puzzle-group--questions-3 { grid-column: auto; }
+  .puzzle-group--questions-2, .puzzle-group--questions-3, .puzzle-group--questions-4 { grid-column: auto; }
 }
 
 @media (max-width: 760px) {
@@ -157,7 +158,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .cover-link { width: auto; }
   .cover-image { width: auto; max-width: min(60vw,245px); max-height: 150px; }
   .chapter-content { width: min(100% - 22px,836px); padding-top: 24px; }
-  .puzzle-group--questions-1, .puzzle-group--questions-2, .puzzle-group--questions-3 { max-width: min(100%,540px); }
+  .puzzle-group--questions-1, .puzzle-group--questions-2, .puzzle-group--questions-3, .puzzle-group--questions-4 { max-width: min(100%,540px); }
   .question-grid { grid-template-columns: repeat(auto-fit,minmax(min(100%,205px),240px)); }
   .about { margin-left: 11px; margin-right: 11px; padding: 24px; }
 }
@@ -169,7 +170,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   .cover-image { max-width: 58vw; max-height: 125px; }
   .chapter-content { width: calc(100% - 20px); }
   .puzzle-group { padding: 13px; }
-  .question-grid { grid-template-columns: 1fr; }
+  .question-grid, .puzzle-group--questions-4 .question-grid { grid-template-columns: 1fr; }
   .question-card { width: 100%; }
   .group-heading h3 { font-size: 25px; }
   .check-dock { left: 12px; right: 12px; justify-content: flex-end; }

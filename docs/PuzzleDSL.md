@@ -44,7 +44,7 @@ multiple lines without appearing in the UI. -->
 A: 1 <!-- author note -->
 ```
 
-Chapter 1 contains Example 1-1, Q1-1, Q1-2, Example 1-2, Q1-3, Q1-4, and so on through Example 1-5, Q1-9, Q1-10. Chapter 2 contains Example 2-1, Q2-1, Q2-2, Example 2-2, Q2-3–Q2-6. This preserves the original PDF order: former Example 6–7 become Example 2-1–2-2; former Q11–Q16 become Q2-1–Q2-6. Stored markings and checked results migrate using this mapping. Chapter 3 adds two examples and seven original puzzles.
+Chapter 1 contains Example 1-1, Q1-1, Q1-2, Example 1-2, Q1-3, Q1-4, and so on through Example 1-5, Q1-9, Q1-10. Chapter 2 contains Example 2-1, Q2-1, Q2-2, Example 2-2, Q2-3, Q2-4, Q2-A, Q2-B. This preserves the original PDF order: former Example 6–7 become Example 2-1–2-2; former Q11–Q14 become Q2-1–Q2-4, and Q15–Q16 become Q2-A–Q2-B. Stored markings and checked results also migrate from the earlier Q2-5/Q2-6 names. Later chapters are author-designed puzzles; their contents and display order are defined by the chapter files. Validation has no fixed list of required puzzle IDs: renaming or removing a group is allowed, while format, duplicate IDs, references, uniqueness and declarations are still checked.
 
 ## Expressions
 
@@ -74,9 +74,9 @@ Question 1 may use `#ref(1)` for self reference. A mutual pair can use `#ref(2)`
 
 The PDF's boxed circled number is represented as `ref(n)` in the DSL. The symbol registry renders it as a boxed circle with an accessible label. Plain letter prompts in the PDF receive `#` in the web edition.
 
-## Literal question marks in Q2-6 (PDF Q16)
+## Literal question marks in Q2-B (PDF Q16)
 
-Q2-6 question 6 (Q16 in the PDF) prints `?` beside all five options. These marks are part of the source puzzle. Write `A: ?` through `E: ?` exactly. A question with five question-mark values contributes its chosen label to every group count, but imposes no equality of its own. The other questions still determine a unique six-letter assignment. A mixture of other values and question marks within one question is rejected, so a typo cannot silently weaken a constraint.
+Q2-B question 6 (Q16 in the PDF) prints `?` beside all five options. These marks are part of the source puzzle. Write `A: ?` through `E: ?` exactly. A question with five question-mark values contributes its chosen label to every group count, but imposes no equality of its own. The other questions still determine a unique six-letter assignment. A mixture of other values and question marks within one question is rejected, so a typo cannot silently weaken a constraint.
 
 ## Adding or changing a puzzle
 

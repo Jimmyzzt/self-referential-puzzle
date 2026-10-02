@@ -1,6 +1,6 @@
 # Made My Own Self-Referential Puzzle Book
 
-An interactive static edition of the seven-page puzzle book in the repository root, extended with original chapters. Chapters 1–2 preserve the seven PDF examples and sixteen puzzles; chapter 3 adds two examples and seven puzzles with direct letter references. Groups use chapter-local numbering. The original PDF is available through **Game jam PDF**.
+An interactive static edition of the seven-page puzzle book in the repository root, extended with original chapters. Chapters 1–2 preserve the seven PDF examples and sixteen puzzles; chapter 3 introduces direct letter references. Groups use chapter-local numbering, with letter suffixes for bonus puzzles. The original PDF is available through **Game jam PDF**.
 
 ## Run it
 
@@ -29,7 +29,7 @@ npm run puzzles:solve -- all
 npm run puzzles:validate
 ```
 
-Q2-6 (formerly PDF Q16) has five literal `?` values in its last question. Those are preserved. Its answer is determined by the other questions; no values were invented. See the Chinese [author quick start](docs/AuthorQuickstart.md) for manual checks and deployment, and the [solver roadmap](docs/SolverRoadmap.md) for future mechanisms.
+Q2-B (formerly PDF Q16, previously Q2-6) has five literal `?` values in its last question. Those are preserved. Its answer is determined by the other questions; no values were invented. See the Chinese [author quick start](docs/AuthorQuickstart.md) for manual checks and deployment, and the [solver roadmap](docs/SolverRoadmap.md) for future mechanisms.
 
 ## Project map
 
