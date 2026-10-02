@@ -23,6 +23,6 @@ export function isSolution(puzzle: Puzzle, answers: readonly Label[]): boolean {
   return puzzle.questions.every((question, index) => {
     if (LABELS.every(label => question.options[label] === null)) return true;
     const target = evaluateOption(question.prompt.target, answers, index);
-    return question.options[answers[index]] === counts[target];
+    return question.options[answers[index]] === (question.prompt.kind === 'count' ? counts[target] : target);
   });
 }

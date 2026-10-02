@@ -7,7 +7,7 @@ const contentDir = join(process.cwd(), 'src', 'content');
 
 export function loadChapters(): Chapter[] {
   const chapters = readdirSync(contentDir)
-    .filter(filename => filename.endsWith('.puzzle.markdown'))
+    .filter(filename => filename.endsWith('.puzzle.md'))
     .map(filename => parseChapter(readFileSync(join(contentDir, filename), 'utf8'), filename))
     .sort((a, b) => a.id - b.id);
   const ids = chapters.map(chapter => chapter.id);

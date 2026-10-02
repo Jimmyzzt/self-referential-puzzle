@@ -1,6 +1,6 @@
 # Chapter 2
 
-## Example 6
+## Example 2-1
 
 @question 1 #E
 A: 0
@@ -19,7 +19,7 @@ E: 3
 @revealed AB
 @solution AB
 
-## Q11
+## Q2-1
 
 @question 1 #ref(2)
 A: 3
@@ -36,7 +36,7 @@ D: 3
 E: 3
 @solution BC
 
-## Q12
+## Q2-2
 
 @question 1 #ref(2)
 A: 1
@@ -60,7 +60,7 @@ D: 3
 E: 0
 @solution ABC
 
-## Example 7
+## Example 2-2
 
 @question 1 #ref(1)
 A: 1
@@ -86,7 +86,7 @@ E: 0
 @revealed ABB
 @solution ABB
 
-## Q13
+## Q2-3
 
 @question 1 #ref(1)
 A: 1
@@ -110,7 +110,7 @@ D: 1
 E: 0
 @solution ABB
 
-## Q14
+## Q2-4
 
 @question 1 #ref(2)
 A: 2
@@ -134,7 +134,7 @@ D: 2
 E: 0
 @solution ABB
 
-## Q15
+## Q2-5
 
 @question 1 #ref(1)
 A: 3
@@ -158,7 +158,7 @@ D: 1
 E: 2
 @solution DAD
 
-## Q16
+## Q2-6
 
 @question 1 #A
 A: 0

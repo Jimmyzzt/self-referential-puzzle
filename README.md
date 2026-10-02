@@ -1,6 +1,6 @@
 # Made My Own Self-Referential Puzzle Book
 
-An interactive static edition of the seven-page puzzle book in the repository root. It includes seven examples and Q1–Q16, transcribed as native web content from the PDF. The original PDF is available through **Printable PDF**.
+An interactive static edition of the seven-page puzzle book in the repository root, extended with original chapters. Chapters 1–2 preserve the seven PDF examples and sixteen puzzles; chapter 3 adds two examples and seven puzzles with direct letter references. Groups use chapter-local numbering. The original PDF is available through **Game jam PDF**.
 
 ## Run it
 
@@ -16,18 +16,20 @@ The site has no backend. It shows one chapter at a time and saves X, ✓, and ch
 
 ## Edit or create puzzles
 
-The source of truth is `src/content/chapter-n.puzzle.markdown`. Each chapter file contains its puzzles in display order, with question prompts, A–E values, and declared solutions. `src/puzzle/parser.ts` builds the AST; `evaluator.ts` and `solver.ts` check every complete candidate assignment. The browser uses the computed, validated solution from the same data, with no separate answer key.
+The source of truth is `src/content/chapter-n.puzzle.md`. Each chapter file contains its puzzles in display order, with question prompts, A–E values, and declared solutions. HTML comments are supported. `src/puzzle/parser.ts` builds the AST; `evaluator.ts` and `solver.ts` check every complete candidate assignment. The browser uses the computed, validated solution from the same data, with no separate answer key.
 
 Read [PuzzleDSL.md](docs/PuzzleDSL.md) for syntax and examples. Useful commands:
 
 ```bash
-npm run puzzles:solve -- Q14
-npm run puzzles:solve -- src/content/chapter-2.puzzle.markdown
+npm run puzzles:solve -- q2-4
+npm run puzzles:solve -- e1-1
+npm run puzzles:solve -- ch3
+npm run puzzles:solve -- src/content/chapter-2.puzzle.md
 npm run puzzles:solve -- all
 npm run puzzles:validate
 ```
 
-Q16's last question has five literal `?` values in the PDF. Those are preserved. Its answer is determined by the other questions; no values were invented.
+Q2-6 (formerly PDF Q16) has five literal `?` values in its last question. Those are preserved. Its answer is determined by the other questions; no values were invented. See the Chinese [author quick start](docs/AuthorQuickstart.md) for manual checks and deployment, and the [solver roadmap](docs/SolverRoadmap.md) for future mechanisms.
 
 ## Project map
 

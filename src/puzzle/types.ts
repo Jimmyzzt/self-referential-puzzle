@@ -7,12 +7,12 @@ export type OptionExpr =
   | { kind: 'selfRef' };
 
 export type CountExpr = { kind: 'count'; target: OptionExpr };
-export type PromptExpr = CountExpr;
+export type PromptExpr = CountExpr | { kind: 'answer'; target: OptionExpr };
 
 export interface Question {
   id: number;
   prompt: PromptExpr;
-  options: Record<Label, number | null>;
+  options: Record<Label, number | Label | null>;
 }
 
 export interface Puzzle {

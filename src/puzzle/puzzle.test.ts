@@ -24,10 +24,10 @@ describe('DSL and AST', () => {
     expect(() => puzzle('@question 1 #A\nA: ?\nB: 1\nC: 2\nD: 3\nE: 4')).toThrow(/five numbers or five/);
   });
   it('keeps multiple puzzles in the chapter source order', () => {
-    const chapter = parseChapter(`# Chapter 2\n\n## Example 6\n${question(1, '#A', [1,0,0,0,0])}\n@solution A\n\n## Q11\n${question(1, '#B', [0,1,0,0,0])}\n@solution B`);
+    const chapter = parseChapter(`# Chapter 2\n\n## Example 2-1\n${question(1, '#A', [1,0,0,0,0])}\n@solution A\n\n## Q2-1\n${question(1, '#B', [0,1,0,0,0])}\n@solution B`);
     expect(chapter.id).toBe(2);
-    expect(chapter.puzzles.map(item => item.id)).toEqual(['Example6', 'Q11']);
-    expect(() => parseChapter('# Chapter 1\n## Q1\n@question 1 #A\nA: 1')).toThrow(/missing B/);
+    expect(chapter.puzzles.map(item => item.id)).toEqual(['Example2-1', 'Q2-1']);
+    expect(() => parseChapter('# Chapter 1\n## Q1-1\n@question 1 #A\nA: 1')).toThrow(/missing B/);
   });
 });
 

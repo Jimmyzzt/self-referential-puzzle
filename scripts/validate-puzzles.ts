@@ -5,20 +5,16 @@ let failures = 0;
 const chapters = loadChapters();
 const puzzles = chapters.flatMap(chapter => chapter.puzzles);
 const sourceOrder = [
-  ['Example1','Q1','Q2','Example2','Q3','Q4','Example3','Q5','Q6','Example4','Q7','Q8','Example5','Q9','Q10'],
-  ['Example6','Q11','Q12','Example7','Q13','Q14','Q15','Q16'],
+  ['Example1-1','Q1-1','Q1-2','Example1-2','Q1-3','Q1-4','Example1-3','Q1-5','Q1-6','Example1-4','Q1-7','Q1-8','Example1-5','Q1-9','Q1-10'],
+  ['Example2-1','Q2-1','Q2-2','Example2-2','Q2-3','Q2-4','Q2-5','Q2-6'],
 ];
 for (const [index, ids] of sourceOrder.entries()) {
   const actual = chapters.find(chapter => chapter.id === index + 1)?.puzzles.map(puzzle => puzzle.id);
-  if (actual?.join(',') !== ids.join(',')) {
+  // Preserve every PDF group and its relative order while allowing new bonus groups.
+  if (actual?.filter(id => ids.includes(id)).join(',') !== ids.join(',')) {
     console.error(`Chapter ${index + 1}: expected ${ids.join(', ')}, actual ${actual?.join(', ') ?? '(missing)'}`);
     failures++;
   }
-}
-const expected = [...Array.from({ length: 7 }, (_, index) => `Example${index + 1}`), ...Array.from({ length: 16 }, (_, index) => `Q${index + 1}`)];
-for (const id of expected) if (!puzzles.some(puzzle => puzzle.id === id)) {
-  console.error(`Missing puzzle: ${id}`);
-  failures++;
 }
 for (const puzzle of puzzles) {
   try {

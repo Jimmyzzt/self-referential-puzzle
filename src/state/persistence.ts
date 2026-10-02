@@ -1,4 +1,5 @@
 import { LABELS, type Label, type Puzzle } from '../puzzle/types';
+import { storedPuzzleValue } from '../puzzle/ids';
 import { emptyMarking, type QuestionMarking } from './markings';
 
 export const STORAGE_KEY = 'self-referential-puzzle-progress-v2';
@@ -23,7 +24,7 @@ export function restoreProgress(raw: string | null, puzzles: readonly Puzzle[]):
     const parsed: unknown = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return fresh;
     for (const puzzle of puzzles) {
-      const candidate = (parsed as Record<string, unknown>)[puzzle.id];
+      const candidate = storedPuzzleValue(parsed as Record<string, unknown>, puzzle);
       if (!Array.isArray(candidate)) continue;
       fresh[puzzle.id] = puzzle.questions.map((_, index) => {
         const item: unknown = candidate[index];

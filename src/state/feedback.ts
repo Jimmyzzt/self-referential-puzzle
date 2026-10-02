@@ -1,4 +1,5 @@
 import type { Puzzle } from '../puzzle/types';
+import { storedPuzzleValue } from '../puzzle/ids';
 import type { Progress } from './persistence';
 
 export type CheckedAnswers = Record<string, string>;
@@ -26,7 +27,7 @@ export function restoreChecked(raw: string | null, puzzles: readonly Puzzle[], p
     const parsed: unknown = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
     const source = parsed as Record<string, unknown>;
-    return Object.fromEntries(puzzles.filter(puzzle => puzzle.type !== 'example' && source[puzzle.id] === currentAnswer(progress, puzzle))
-      .map(puzzle => [puzzle.id, source[puzzle.id] as string]));
+    return Object.fromEntries(puzzles.filter(puzzle => puzzle.type !== 'example' && typeof storedPuzzleValue(source, puzzle) === 'string' && storedPuzzleValue(source, puzzle) === currentAnswer(progress, puzzle))
+      .map(puzzle => [puzzle.id, storedPuzzleValue(source, puzzle) as string]));
   } catch { return {}; }
 }

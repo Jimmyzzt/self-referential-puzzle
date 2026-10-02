@@ -2,6 +2,8 @@
 
 This is a static Vite site. No server process, secrets, database, or route rewrite is required. `dist/` contains `index.html`, JS/CSS assets, and the original printable PDF.
 
+For the Chinese command-by-command author workflow and manual puzzle checks, see [AuthorQuickstart.md](AuthorQuickstart.md). Pages is currently at <https://jimmyzzt.github.io/self-referential-puzzle/>. Pages and itch.io are independent deployments.
+
 ## GitHub Pages
 
 1. Push `main` to a GitHub repository.

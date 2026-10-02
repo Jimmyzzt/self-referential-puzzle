@@ -2,7 +2,7 @@ import { parseChapter } from './parser';
 import { solvePuzzle } from './solver';
 import type { Chapter, Puzzle } from './types';
 
-const sources = import.meta.glob('../content/*.puzzle.markdown', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
+const sources = import.meta.glob('../content/*.puzzle.md', { query: '?raw', import: 'default', eager: true }) as Record<string, string>;
 export const chapters: Chapter[] = Object.entries(sources)
   .map(([path, source]) => parseChapter(source, path))
   .sort((a, b) => a.id - b.id);

@@ -1,6 +1,6 @@
 # Chapter 1
 
-## Example 1
+## Example 1-1
 
 @question 1 #C
 A: 0
@@ -12,7 +12,7 @@ E: 2
 @revealed A
 @solution A
 
-## Q1
+## Q1-1
 
 @question 1 #C
 A: 2
@@ -22,7 +22,7 @@ D: 2
 E: 2
 @solution B
 
-## Q2
+## Q1-2
 
 @question 1 #C
 A: 1
@@ -32,7 +32,7 @@ D: 0
 E: 1
 @solution D
 
-## Example 2
+## Example 1-2
 
 @question 1 #C
 A: 1
@@ -44,7 +44,7 @@ E: 1
 @revealed C
 @solution C
 
-## Q3
+## Q1-3
 
 @question 1 #A
 A: 1
@@ -54,7 +54,7 @@ D: 1
 E: 1
 @solution A
 
-## Q4
+## Q1-4
 
 @question 1 #D
 A: 1
@@ -64,7 +64,7 @@ D: 1
 E: 4
 @solution D
 
-## Example 3
+## Example 1-3
 
 @question 1 #C
 A: 2
@@ -76,7 +76,7 @@ E: 4
 @revealed B
 @solution B
 
-## Q5
+## Q1-5
 
 @question 1 #B
 A: 2
@@ -86,7 +86,7 @@ D: 3
 E: 4
 @solution C
 
-## Q6
+## Q1-6
 
 @question 1 #D
 A: 1
@@ -96,7 +96,7 @@ D: 0
 E: 2
 @solution B
 
-## Example 4
+## Example 1-4
 
 @question 1 #A
 A: 2
@@ -115,7 +115,7 @@ E: 2
 @revealed AA
 @solution AA
 
-## Q7
+## Q1-7
 
 @question 1 #B
 A: 2
@@ -132,7 +132,7 @@ D: 1
 E: 4
 @solution BB
 
-## Q8
+## Q1-8
 
 @question 1 #C
 A: 3
@@ -156,7 +156,7 @@ D: 1
 E: 2
 @solution CCC
 
-## Example 5
+## Example 1-5
 
 @question 1 #A
 A: 0
@@ -175,7 +175,7 @@ E: 0
 @revealed BA
 @solution BA
 
-## Q9
+## Q1-9
 
 @question 1 #A
 A: 1
@@ -192,7 +192,7 @@ D: 2
 E: 3
 @solution AC
 
-## Q10
+## Q1-10
 
 @question 1 #A
 A: 2

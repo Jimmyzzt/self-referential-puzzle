@@ -1,16 +1,17 @@
 import { readFileSync } from 'node:fs';
 import { parseChapter } from '../src/puzzle/parser';
 import { solvePuzzle } from '../src/puzzle/solver';
-import { loadPuzzles } from './load-puzzles';
+import { selectPuzzles } from '../src/puzzle/ids';
+import { loadChapters } from './load-puzzles';
 
 const request = process.argv[2];
 if (!request) {
-  console.error('Usage: npm run puzzles:solve -- <Q14|Example7|chapter-path|all>');
+  console.error('Usage: npm run puzzles:solve -- <q1-1|e1-1|q2-A|ch1|chapter.puzzle.md|all>');
   process.exit(2);
 }
-const puzzles = request === 'all' ? loadPuzzles() : request.endsWith('.puzzle.markdown')
+const puzzles = request.toLowerCase().endsWith('.puzzle.md')
   ? parseChapter(readFileSync(request, 'utf8'), request).puzzles
-  : loadPuzzles().filter(puzzle => puzzle.id.toLowerCase() === request.toLowerCase());
+  : selectPuzzles(loadChapters(), request);
 if (!puzzles.length) {
   console.error(`Puzzle not found: ${request}`);
   process.exit(2);
