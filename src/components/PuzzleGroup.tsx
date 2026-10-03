@@ -1,6 +1,6 @@
 import type { Puzzle, Label, Question } from '../puzzle/types';
 import { LABELS } from '../puzzle/types';
-import { PromptSymbol } from '../puzzle/symbols';
+import { describeOptionValue, OptionValueSymbol, PromptSymbol } from '../puzzle/symbols';
 import { optionState, type QuestionMarking } from '../state/markings';
 import type { PuzzleStatus } from '../state/feedback';
 
@@ -38,12 +38,12 @@ function QuestionCard({ question, marking, onOptionClick, onAnswerInput }: {
           type="button"
           className={`option option--${state}`}
           aria-pressed={state === 'selected'}
-          aria-label={`${label}, ${question.options[label] === null ? 'question mark' : question.options[label]}, ${state === 'manual-X' ? 'manually crossed out' : state === 'auto-X' ? 'automatically crossed out' : state}`}
+          aria-label={`${label}, ${describeOptionValue(question.options[label])}, ${state === 'manual-X' ? 'manually crossed out' : state === 'auto-X' ? 'automatically crossed out' : state}`}
           onClick={() => onOptionClick(label)}
         >
           <span className="option-label">{label}</span>
           <span className="option-divider" aria-hidden="true" />
-          <span className="option-value">{question.options[label] ?? '?'}</span>
+          <span className="option-value"><OptionValueSymbol value={question.options[label]} /></span>
           <span className="option-mark" aria-hidden="true">{state === 'selected' ? '✓' : state === 'manual-X' ? '×' : ''}</span>
         </button>;
       })}

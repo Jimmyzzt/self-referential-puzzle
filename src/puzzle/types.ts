@@ -8,11 +8,12 @@ export type OptionExpr =
 
 export type CountExpr = { kind: 'count'; target: OptionExpr };
 export type PromptExpr = CountExpr | { kind: 'answer'; target: OptionExpr };
+export type OptionValue = number | Label | OptionExpr | null;
 
 export interface Question {
   id: number;
   prompt: PromptExpr;
-  options: Record<Label, number | Label | null>;
+  options: Record<Label, OptionValue>;
 }
 
 export interface Puzzle {

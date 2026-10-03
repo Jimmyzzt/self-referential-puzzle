@@ -1,6 +1,6 @@
 # Made My Own Self-Referential Puzzle Book
 
-An interactive static edition of the seven-page puzzle book in the repository root, extended with original chapters. Chapters 1–2 preserve the seven PDF examples and sixteen puzzles; chapter 3 introduces direct letter references. Groups use chapter-local numbering, with letter suffixes for bonus puzzles. The original PDF is available through **Game jam PDF**.
+An interactive static edition of the seven-page puzzle book in the repository root, extended with original chapters. Chapters 1–2 preserve the seven PDF examples and sixteen puzzles; chapter 3 introduces direct letter references, and chapter 4 adds references in option contents. Groups use chapter-local numbering, with letter suffixes for bonus puzzles. The original PDF is available through **Game jam PDF**.
 
 ## Run it
 

@@ -70,12 +70,15 @@ export function parsePuzzle(source: string, filename = '<text>'): Puzzle {
       activePuzzle.questions.push(current);
       continue;
     }
-    const option = /^([A-E]):\s*(\d+|[A-E]|\?)$/.exec(line);
+    const option = /^([A-E]):\s*(\d+|[A-E]|\?|ref\([1-9]\d*\))$/.exec(line);
     if (option) {
       if (!current) fail(lineNo, 'Option before a question');
       const label = option[1] as Label;
       if (Object.hasOwn(current.options, label)) fail(lineNo, `Duplicate option ${label}`);
-      current.options[label] = option[2] === '?' ? null : LABELS.includes(option[2] as Label) ? option[2] as Label : Number(option[2]);
+      current.options[label] = option[2] === '?' ? null
+        : LABELS.includes(option[2] as Label) ? option[2] as Label
+        : option[2].startsWith('ref(') ? parsePrompt(option[2]).target
+        : Number(option[2]);
       continue;
     }
     const directive = /^@(solution|revealed|status)\s+(.+)$/.exec(line);
@@ -100,15 +103,22 @@ export function parsePuzzle(source: string, filename = '<text>'): Puzzle {
       if (!Object.hasOwn(question.options, label)) throw new Error(`${filename}: ${puzzle.id} question ${question.id} missing ${label}`);
     }
     const unknowns = LABELS.filter(label => question.options[label] === null).length;
-    if (unknowns !== 0 && unknowns !== LABELS.length) throw new Error(`${filename}: ${puzzle.id} question ${question.id} must have either five numbers or five ? marks`);
+    if (unknowns !== 0 && unknowns !== LABELS.length) throw new Error(`${filename}: ${puzzle.id} question ${question.id} must have either five concrete values or five ? marks`);
     if (unknowns === 0) {
-      const expectedType = question.prompt.kind === 'count' ? 'number' : 'string';
-      if (LABELS.some(label => typeof question.options[label] !== expectedType)) {
-        throw new Error(`${filename}: ${puzzle.id} question ${question.id} requires five ${expectedType === 'number' ? 'numbers for a count prompt' : 'A–E labels for an answer prompt'}`);
+      const numeric = question.prompt.kind === 'count';
+      if (LABELS.some(label => numeric
+        ? typeof question.options[label] !== 'number'
+        : typeof question.options[label] !== 'string' && typeof question.options[label] !== 'object')) {
+        throw new Error(`${filename}: ${puzzle.id} question ${question.id} requires five ${numeric ? 'numbers for a count prompt' : 'A–E labels or ref(n) values for an answer prompt'}`);
       }
     }
-    const target = question.prompt.target;
-    if (target.kind === 'ref' && target.question > puzzle.questions.length) throw new Error(`${filename}: ${puzzle.id} question ${question.id} references missing question ${target.question}`);
+    const targets = [question.prompt.target, ...LABELS.flatMap(label => {
+      const value = question.options[label];
+      return value !== null && typeof value === 'object' ? [value] : [];
+    })];
+    for (const target of targets) {
+      if (target.kind === 'ref' && target.question > puzzle.questions.length) throw new Error(`${filename}: ${puzzle.id} question ${question.id} references missing question ${target.question}`);
+    }
   }
   for (const [key, value] of [['solution', puzzle.declaredSolution], ['revealed', puzzle.revealedSolution]] as const) {
     if (value && value.length !== puzzle.questions.length) throw new Error(`${filename}: ${key} length must match question count`);

@@ -21,7 +21,7 @@ describe('DSL and AST', () => {
   });
   it('rejects a missing reference and mixed unknown values', () => {
     expect(() => puzzle(question(1, '#ref(2)', [0,1,2,3,4]))).toThrow(/missing question/);
-    expect(() => puzzle('@question 1 #A\nA: ?\nB: 1\nC: 2\nD: 3\nE: 4')).toThrow(/five numbers or five/);
+    expect(() => puzzle('@question 1 #A\nA: ?\nB: 1\nC: 2\nD: 3\nE: 4')).toThrow(/five concrete values or five/);
   });
   it('keeps multiple puzzles in the chapter source order', () => {
     const chapter = parseChapter(`# Chapter 2\n\n## Example 2-1\n${question(1, '#A', [1,0,0,0,0])}\n@solution A\n\n## Q2-1\n${question(1, '#B', [0,1,0,0,0])}\n@solution B`);

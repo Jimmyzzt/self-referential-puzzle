@@ -57,7 +57,7 @@ Chapter 1 contains Example 1-1, Q1-1, Q1-2, Example 1-2, Q1-3, Q1-4, and so on t
 | `ref(2)` | `answer(ref(2))` | The selected answer label of question 2 |
 | `self` | `answer(selfRef())` | The selected answer label of this question |
 
-Count prompts require five numeric values, or five literal `?` values. Direct answer prompts require five A–E values, or five `?` values. Types cannot be mixed. A complete assignment is valid when each prompt's result equals the content beside that question's selected option; all questions are checked simultaneously. Direct `ref(n)` looks up the selected label, not the option's content.
+Count prompts require five numeric values, or five literal `?` values. Direct answer prompts require five label-valued contents (A–E constants and/or `ref(n)`), or five `?` values. Label constants and references may be mixed because both evaluate to labels; numbers cannot be mixed with them. A complete assignment is valid when each prompt's result equals the evaluated content beside that question's selected option; all questions are checked simultaneously. Direct `ref(n)` looks up the selected label, not the option's content.
 
 ```text
 @question 1 A
@@ -68,7 +68,22 @@ D: D
 E: E
 ```
 
-Here only B is valid: selecting B gives option content A, matching the literal prompt A. This is the first mechanism from `docs/idea.md`, used in chapter 3. Other ideas remain design proposals; see [Solver roadmap](SolverRoadmap.md).
+Here only B is valid: selecting B gives option content A, matching the literal prompt A. This is the first mechanism from `docs/idea.md`, used in chapter 3.
+
+Chapter 4 introduces references in option contents (idea 3):
+
+```text
+@question 2 B
+A: A
+B: C
+C: ref(1)
+D: D
+E: E
+```
+
+If question 1 selects B, option C above evaluates to B and matches this prompt. It still selects label C for question 2. The content of question 1's selected option is never followed; this mechanism does not introduce pointers. Right-side `ref(n)` has the same AST node and boxed-circle rendering as a left-side reference. A count prompt cannot use a bare `ref(n)` as option content: that returns a label, not a number. All references, including unselected options, are checked for missing questions. Repeated reference contents remain separate selectable options, and self/mutual/cyclic references use a complete assignment without recursive content expansion.
+
+Keep design intentions brief, in HTML comments beside the puzzles in the chapter source. Other ideas remain proposals; see [Solver roadmap](SolverRoadmap.md).
 
 Question 1 may use `#ref(1)` for self reference. A mutual pair can use `#ref(2)` and `#ref(1)`. A three-question cycle can use `#ref(2)`, `#ref(3)`, and `#ref(1)`. No special evaluation order is needed: each complete candidate assignment fixes all references before checking every option value.
 

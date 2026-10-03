@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { OptionExpr, PromptExpr } from './types';
+import type { OptionExpr, OptionValue, PromptExpr } from './types';
 
 type Renderer = (expr: never) => ReactNode;
 const symbolRegistry: Record<OptionExpr['kind'], Renderer> = {
@@ -13,6 +13,20 @@ const symbolRegistry: Record<OptionExpr['kind'], Renderer> = {
 
 export function renderOptionExpr(expr: OptionExpr): ReactNode {
   return symbolRegistry[expr.kind](expr as never);
+}
+
+export function describeOptionValue(value: OptionValue): string {
+  if (value === null) return 'question mark';
+  if (typeof value !== 'object') return String(value);
+  switch (value.kind) {
+    case 'literalOption': return value.label;
+    case 'ref': return `answer of question ${value.question}`;
+    case 'selfRef': return 'answer of this question';
+  }
+}
+
+export function OptionValueSymbol({ value }: { value: OptionValue }) {
+  return value !== null && typeof value === 'object' ? renderOptionExpr(value) : <>{value ?? '?'}</>;
 }
 
 export function PromptSymbol({ expr }: { expr: PromptExpr }) {

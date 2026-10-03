@@ -1,4 +1,4 @@
-import { LABELS, type Label, type OptionExpr, type Puzzle } from './types';
+import { LABELS, type Label, type OptionExpr, type OptionValue, type Puzzle } from './types';
 
 export function evaluateOption(expr: OptionExpr, answers: readonly Label[], questionIndex: number): Label {
   switch (expr.kind) {
@@ -16,6 +16,10 @@ export function evaluateOption(expr: OptionExpr, answers: readonly Label[], ques
   }
 }
 
+export function evaluateValue(value: OptionValue, answers: readonly Label[], questionIndex: number): number | Label | null {
+  return value !== null && typeof value === 'object' ? evaluateOption(value, answers, questionIndex) : value;
+}
+
 export function isSolution(puzzle: Puzzle, answers: readonly Label[]): boolean {
   if (puzzle.status === 'incomplete') throw new Error(`${puzzle.id} is marked incomplete`);
   if (answers.length !== puzzle.questions.length || answers.some(answer => !LABELS.includes(answer))) return false;
@@ -23,6 +27,6 @@ export function isSolution(puzzle: Puzzle, answers: readonly Label[]): boolean {
   return puzzle.questions.every((question, index) => {
     if (LABELS.every(label => question.options[label] === null)) return true;
     const target = evaluateOption(question.prompt.target, answers, index);
-    return question.options[answers[index]] === (question.prompt.kind === 'count' ? counts[target] : target);
+    return evaluateValue(question.options[answers[index]], answers, index) === (question.prompt.kind === 'count' ? counts[target] : target);
   });
 }
