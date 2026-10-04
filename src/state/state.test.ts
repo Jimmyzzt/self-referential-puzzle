@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { clickOption, emptyMarking, optionState, selectOption } from './markings';
-import { clearProgress, freshProgress, migrateLegacyProgress, restoreProgress, saveProgress, STORAGE_KEY, LEGACY_STORAGE_KEY } from './persistence';
-import { beginCooldown, canCheck, checkCompleted } from './checker';
+import { clearProgress, freshProgress, migrateLegacyProgress, restoreProgress, saveProgress, STORAGE_KEY, LEGACY_STORAGE_KEY, PREVIOUS_STORAGE_KEY } from './persistence';
+import { beginCooldown, canCheck, checkCompleted, isChapterComplete } from './checker';
 import { currentAnswer, puzzleStatus, restoreChecked } from './feedback';
 import { parsePuzzle } from '../puzzle/parser';
 
@@ -43,6 +43,15 @@ describe('option marking', () => {
 });
 
 describe('checking and persistence', () => {
+  it('requires every group to be correct before declaring a chapter complete', () => {
+    const example = { ...puzzle, id: 'Example1', type: 'example' as const };
+    const chapter = [example, puzzle];
+    expect(isChapterComplete(chapter, { Example1: 'correct' })).toBe(false);
+    expect(isChapterComplete(chapter, { Example1: 'correct', Q1: 'wrong' })).toBe(false);
+    expect(isChapterComplete(chapter, { Example1: 'wrong', Q1: 'correct' })).toBe(false);
+    expect(isChapterComplete(chapter, { Example1: 'correct', Q1: 'correct' })).toBe(true);
+    expect(isChapterComplete([], {})).toBe(false);
+  });
   it('ignores incomplete groups and distinguishes correct and wrong answers', () => {
     const empty = freshProgress([puzzle]);
     expect(checkCompleted([puzzle], { Q1: 'A' }, empty)).toEqual({});
@@ -61,7 +70,7 @@ describe('checking and persistence', () => {
     let stored: string | null = null;
     const storage = {
       setItem(key: string, value: string) { expect(key).toBe(STORAGE_KEY); stored = value; },
-      removeItem(key: string) { expect([STORAGE_KEY, LEGACY_STORAGE_KEY]).toContain(key); stored = null; },
+      removeItem(key: string) { expect([STORAGE_KEY, PREVIOUS_STORAGE_KEY, LEGACY_STORAGE_KEY]).toContain(key); stored = null; },
     };
     const progress = freshProgress([puzzle]);
     progress.Q1[0] = { manualX: ['B'], selected: 'A' };

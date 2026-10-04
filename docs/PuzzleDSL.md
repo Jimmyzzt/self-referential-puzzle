@@ -56,6 +56,7 @@ Chapter 1 contains Example 1-1, Q1-1, Q1-2, Example 1-2, Q1-3, Q1-4, and so on t
 | `A` | `answer(literalOption('A'))` | The literal answer label A |
 | `ref(2)` | `answer(ref(2))` | The selected answer label of question 2 |
 | `self` | `answer(selfRef())` | The selected answer label of this question |
+| `?` | `unknown` | No local equality; requires five literal `?` option values |
 
 Count prompts require five numeric values, or five literal `?` values. Direct answer prompts require five label-valued contents (A–E constants and/or `ref(n)`), or five `?` values. Label constants and references may be mixed because both evaluate to labels; numbers cannot be mixed with them. A complete assignment is valid when each prompt's result equals the evaluated content beside that question's selected option; all questions are checked simultaneously. Direct `ref(n)` looks up the selected label, not the option's content.
 
@@ -93,7 +94,11 @@ The PDF's boxed circled number is represented as `ref(n)` in the DSL. The symbol
 
 Q2-B question 6 (Q16 in the PDF) prints `?` beside all five options. These marks are part of the source puzzle. Write `A: ?` through `E: ?` exactly. A question with five question-mark values contributes its chosen label to every group count, but imposes no equality of its own. The other questions still determine a unique six-letter assignment. A mixture of other values and question marks within one question is rejected, so a typo cannot silently weaken a constraint.
 
+A question may also use `@question 5 ?` with five `?` values, as in Q4-B questions 5 and 6. It explicitly has no local equality, while its selected label remains available to references and group counts. A `?` prompt with concrete values is rejected. This implements only the fully unconstrained row; wildcards inside count, order, pointer or arithmetic expressions are not yet supported.
+
 ## Adding or changing a puzzle
+
+Numeric Q IDs and Example IDs each run consecutively from 1 in chapter order. Bonus letter IDs do not consume a number. After deleting a numeric puzzle, move later numbers down and migrate browser progress if those IDs were already published. Changing the content under an existing ID creates a separate statistics revision.
 
 1. Add `## Q3-8` to chapter 3, or create `src/content/chapter-4.puzzle.md` beginning with `# Chapter 4` and use `## Q4-1`. Add consecutive `@question` blocks, five options per question, and `@solution`.
 2. Use `npm run puzzles:solve -- q3-8` to inspect all computed solutions.

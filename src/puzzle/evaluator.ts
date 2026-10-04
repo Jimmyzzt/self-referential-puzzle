@@ -25,7 +25,7 @@ export function isSolution(puzzle: Puzzle, answers: readonly Label[]): boolean {
   if (answers.length !== puzzle.questions.length || answers.some(answer => !LABELS.includes(answer))) return false;
   const counts = Object.fromEntries(LABELS.map(label => [label, answers.filter(answer => answer === label).length])) as Record<Label, number>;
   return puzzle.questions.every((question, index) => {
-    if (LABELS.every(label => question.options[label] === null)) return true;
+    if (question.prompt.kind === 'unknown' || LABELS.every(label => question.options[label] === null)) return true;
     const target = evaluateOption(question.prompt.target, answers, index);
     return evaluateValue(question.options[answers[index]], answers, index) === (question.prompt.kind === 'count' ? counts[target] : target);
   });

@@ -1,0 +1,28 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "self-referential-puzzle",
+  "main": "workers/index.ts",
+  "compatibility_date": "2026-10-04",
+  "workers_dev": true,
+  "observability": {
+    "logs": { "enabled": true, "head_sampling_rate": 0.01 },
+    "traces": { "enabled": true, "head_sampling_rate": 0.01 }
+  },
+  "routes": [
+    { "pattern": "self-refp.zzt.si", "custom_domain": true }
+  ],
+  "build": { "command": "npm run build" },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "STATS",
+      "database_name": "self-referential-puzzle-stats",
+      "database_id": "f961f2ea-1eae-4c02-858f-6a0c9b0650c8",
+      "migrations_dir": "workers/migrations"
+    }
+  ]
+}

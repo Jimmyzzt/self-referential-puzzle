@@ -4,4 +4,9 @@ release/
 coverage/
 tmp/
 *.tsbuildinfo
+.wrangler/
+workers/generated/
+.env
+.env.local
+.dev.vars
 .DS_Store

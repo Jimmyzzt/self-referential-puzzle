@@ -118,41 +118,8 @@ E: A
 
 @solution CCB
 
-<!-- 由零计数排除一串 A，再反向确定唯一的目标位置。 -->
-## Q4-4
-
-@question 1 A
-A: ref(4)
-B: ref(2)
-C: ref(3)
-D: ref(1)
-E: E
-
-@question 2 A
-A: ref(1)
-B: ref(4)
-C: ref(2)
-D: ref(3)
-E: D
-
-@question 3 A
-A: ref(3)
-B: ref(1)
-C: ref(4)
-D: ref(2)
-E: B
-
-@question 4 #A
-A: 0
-B: 1
-C: 2
-D: 3
-E: 4
-
-@solution CDAB
-
 <!-- E 只能成对出现；引用和计数共同排除自指与重复引用造成的候选。 -->
-## Q4-5
+## Q4-4
 
 @question 1 E
 A: ref(3)
@@ -248,14 +215,14 @@ C: 4
 D: 5
 E: 6
 
-@question 5 ref(6)
+@question 5 ?
 A: ?
 B: ?
 C: ?
 D: ?
 E: ?
 
-@question 6 ref(5)
+@question 6 ?
 A: ?
 B: ?
 C: ?

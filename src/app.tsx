@@ -2,10 +2,13 @@ import { useEffect, useRef, useState } from 'react';
 import { chapters, puzzles, verifiedSolutions } from './puzzle/book';
 import type { Label, Puzzle } from './puzzle/types';
 import { PuzzleGroup } from './components/PuzzleGroup';
+import { CompletionDialog } from './components/CompletionDialog';
+import { migrateChapter4Raw } from './puzzle/ids';
 import { clickOption, selectOption } from './state/markings';
-import { clearProgress, freshProgress, migrateLegacyProgress, restoreProgress, saveProgress, LEGACY_STORAGE_KEY, STORAGE_KEY, type Progress } from './state/persistence';
-import { beginCooldown, canCheck, checkCompleted } from './state/checker';
-import { CHECKED_KEY, currentAnswer, puzzleStatus, restoreChecked, type CheckedAnswers } from './state/feedback';
+import { clearProgress, freshProgress, migrateLegacyProgress, restoreProgress, saveProgress, LEGACY_STORAGE_KEY, PREVIOUS_STORAGE_KEY, STORAGE_KEY, type Progress } from './state/persistence';
+import { beginCooldown, canCheck, checkCompleted, isChapterComplete } from './state/checker';
+import { CHECKED_KEY, PREVIOUS_CHECKED_KEY, currentAnswer, puzzleStatus, restoreChecked, type CheckedAnswers } from './state/feedback';
+import { readStatsEnabled, reportCheck, resumeStats, setStatsEnabled, statsEndpoint } from './stats/client';
 
 const MUTE_KEY = 'self-referential-puzzle-muted-v1';
 const PDF_URL = `${import.meta.env.BASE_URL}Printable-Puzzle-Book.pdf`;
@@ -16,9 +19,11 @@ const GITHUB_URL = 'https://github.com/Jimmyzzt/self-referential-puzzle';
 function readProgress(): Progress {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    return saved === null
-      ? migrateLegacyProgress(localStorage.getItem(LEGACY_STORAGE_KEY), puzzles)
-      : restoreProgress(saved, puzzles);
+    if (saved !== null) return restoreProgress(saved, puzzles);
+    const previous = localStorage.getItem(PREVIOUS_STORAGE_KEY);
+    return previous !== null
+      ? restoreProgress(migrateChapter4Raw(previous), puzzles)
+      : migrateLegacyProgress(localStorage.getItem(LEGACY_STORAGE_KEY), puzzles);
   } catch { return freshProgress(puzzles); }
 }
 
@@ -28,7 +33,10 @@ function readMuted(): boolean {
 }
 
 function readChecked(progress: Progress): CheckedAnswers {
-  try { return restoreChecked(localStorage.getItem(CHECKED_KEY), puzzles, progress); }
+  try {
+    const saved = localStorage.getItem(CHECKED_KEY);
+    return restoreChecked(saved ?? migrateChapter4Raw(localStorage.getItem(PREVIOUS_CHECKED_KEY)), puzzles, progress);
+  }
   catch { return {}; }
 }
 
@@ -72,7 +80,9 @@ export default function App() {
   const [showHeaderProgress, setShowHeaderProgress] = useState(false);
   const [headerStatusOpen, setHeaderStatusOpen] = useState(false);
   const [muted, setMuted] = useState(readMuted);
+  const [statsEnabled, updateStatsEnabled] = useState(readStatsEnabled);
   const [notice, setNotice] = useState('');
+  const [completion, setCompletion] = useState<'chapter' | 'book' | null>(null);
   const [flashIds, setFlashIds] = useState<string[]>([]);
   const [cooldownUntil, setCooldownUntil] = useState(0);
   const [now, setNow] = useState(Date.now());
@@ -91,6 +101,7 @@ export default function App() {
   useEffect(() => {
     try { localStorage.setItem(MUTE_KEY, String(muted)); } catch { /* Storage is optional. */ }
   }, [muted]);
+  useEffect(resumeStats, []);
   useEffect(() => {
     if (canCheck(now, cooldownUntil)) return;
     const timer = window.setInterval(() => setNow(Date.now()), 100);
@@ -167,7 +178,9 @@ export default function App() {
     if (!canCheck(timestamp, cooldownUntil)) return;
     setNow(timestamp);
     setCooldownUntil(beginCooldown(timestamp));
-    const result = checkCompleted(chapter.puzzles.filter(puzzle => puzzle.type !== 'example'), verifiedSolutions, progress);
+    const chapterResult = checkCompleted(chapter.puzzles, verifiedSolutions, progress);
+    const result = Object.fromEntries(chapter.puzzles.filter(puzzle => puzzle.type !== 'example' && chapterResult[puzzle.id])
+      .map(puzzle => [puzzle.id, chapterResult[puzzle.id]]));
     const ids = Object.keys(result);
     setFlashIds(ids);
     window.clearTimeout(flashTimer.current);
@@ -176,6 +189,7 @@ export default function App() {
       temporaryNotice('Finish a puzzle in this chapter first.');
       return;
     }
+    if (statsEnabled) void reportCheck(chapter.puzzles, progress);
     setChecked(previous => ({
       ...previous,
       ...Object.fromEntries(ids.map(id => [id, currentAnswer(progress, puzzles.find(puzzle => puzzle.id === id)!)!])),
@@ -185,15 +199,28 @@ export default function App() {
     temporaryNotice(wrong ? `${correct} right · ${wrong} to revisit` : `${correct} puzzle${correct === 1 ? '' : 's'} looking good!`);
     if (!muted) playFeedback(wrong ? 'wrong' : 'correct');
     if (!wrong && typeof navigator.vibrate === 'function') navigator.vibrate(30);
+    if (isChapterComplete(chapter.puzzles, chapterResult)) {
+      setCompletion(chapterIndex === chapters.length - 1 ? 'book' : 'chapter');
+    }
   }
 
-  function reset() {
-    if (!window.confirm('Reset all your X and ✓ marks? This cannot be undone.')) return;
-    try { clearProgress(localStorage); localStorage.removeItem(CHECKED_KEY); } catch { /* Storage is optional. */ }
-    setProgress(freshProgress(puzzles));
-    setChecked({});
+  function reset(scope: 'chapter' | 'all') {
+    const message = scope === 'chapter'
+      ? 'Reset all your X and ✓ marks in Chapter ' + chapter.id + '? This cannot be undone.'
+      : 'Reset all your X and ✓ marks in every chapter? This cannot be undone.';
+    if (!window.confirm(message)) return;
+    if (scope === 'all') {
+      try { clearProgress(localStorage); localStorage.removeItem(CHECKED_KEY); localStorage.removeItem(PREVIOUS_CHECKED_KEY); } catch { /* Storage is optional. */ }
+      setProgress(freshProgress(puzzles));
+      setChecked({});
+    } else {
+      const ids = new Set(chapter.puzzles.map(puzzle => puzzle.id));
+      setProgress(previous => ({ ...previous, ...freshProgress(chapter.puzzles) }));
+      setChecked(previous => Object.fromEntries(Object.entries(previous).filter(([id]) => !ids.has(id))));
+    }
     setFlashIds([]);
-    temporaryNotice('Progress reset.');
+    setCompletion(null);
+    temporaryNotice(scope === 'chapter' ? 'Chapter progress reset.' : 'All progress reset.');
   }
 
   function changeChapter(index: number) {
@@ -276,6 +303,10 @@ export default function App() {
           <CheckButton disabled={cooldownSeconds > 0} seconds={cooldownSeconds} onClick={checkAnswers} className="check-button--inline" />
           <button type="button" className="chapter-arrow" disabled={chapterIndex === chapters.length - 1} onClick={() => changeChapter(chapterIndex + 1)} aria-label="Next chapter">→</button>
         </div>
+        <div className="settings chapter-reset">
+          <button type="button" onClick={() => reset('chapter')}>Reset chapter</button>
+          <button type="button" onClick={() => reset('all')}>Reset all</button>
+        </div>
       </section>
       </div>
 
@@ -283,9 +314,23 @@ export default function App() {
         <h2 id="about-heading">About</h2>
         <p>Inspired by <a href="https://www.brainzilla.com/logic/self-referential-quiz/" target="_blank" rel="noreferrer">Brainzilla's Self-Referential Quiz</a>. Special thanks to xxuurruuii for helping shape this into a playable puzzle.</p>
         <p>Looking forward to your feedback! <a href={ITCH_URL} target="_blank" rel="noreferrer">Visit the itch.io page ↗</a></p>
-        <div className="settings"><button type="button" onClick={() => setMuted(value => !value)} aria-pressed={muted}>{muted ? 'Sound off' : 'Sound on'}</button><button type="button" onClick={reset}>Reset progress</button></div>
+        <div className="settings"><button type="button" onClick={() => setMuted(value => !value)} aria-pressed={muted}>{muted ? 'Sound off' : 'Sound on'}</button></div>
+        {statsEndpoint() && <>
+          <p>Anonymous answer checks help improve puzzle difficulty.</p>
+          <div className="settings"><button type="button" aria-pressed={statsEnabled}
+            onClick={() => { setStatsEnabled(!statsEnabled); updateStatsEnabled(!statsEnabled); }}>
+            {statsEnabled ? 'Anonymous stats on' : 'Anonymous stats off'}
+          </button></div>
+        </>}
       </section>
     </main>
+
+    {completion && <CompletionDialog
+      finalChapter={completion === 'book'}
+      onDismiss={() => setCompletion(null)}
+      onNext={() => { setCompletion(null); changeChapter(chapterIndex + 1); }}
+      feedback={<p>Looking forward to your feedback! <a href={ITCH_URL} target="_blank" rel="noreferrer">Visit the itch.io page ↗</a></p>}
+    />}
 
     <div className="check-dock"><span className="check-notice" role="status" aria-live="polite">{notice}</span><CheckButton disabled={cooldownSeconds > 0} seconds={cooldownSeconds} onClick={checkAnswers} /><button type="button" className="back-to-top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="Back to top">↑</button></div>
   </>;

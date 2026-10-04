@@ -30,6 +30,7 @@ export function OptionValueSymbol({ value }: { value: OptionValue }) {
 }
 
 export function PromptSymbol({ expr }: { expr: PromptExpr }) {
+  if (expr.kind === 'unknown') return <span className="prompt-symbol" role="img" aria-label="question mark">?</span>;
   if (expr.kind === 'answer') return <span className="prompt-symbol">{renderOptionExpr(expr.target)}</span>;
   return <span className="prompt-symbol"><span aria-hidden="true">#</span><span className="sr-only">number of answers matching </span>{renderOptionExpr(expr.target)}</span>;
 }

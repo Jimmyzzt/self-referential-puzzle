@@ -28,6 +28,7 @@ function stripComments(source: string, filename: string): string {
 const puzzleHeading = /^# (Example\s*((?:[1-9]\d*-)?(?:[1-9]\d*|[A-Z]+))|Q((?:[1-9]\d*-)?(?:[1-9]\d*|[A-Z]+)))$/;
 
 export function parsePrompt(input: string): Question['prompt'] {
+  if (input === '?') return { kind: 'unknown' };
   const count = input.startsWith('#');
   const body = count ? input.slice(1) : input;
   let target: OptionExpr;
@@ -77,7 +78,7 @@ export function parsePuzzle(source: string, filename = '<text>'): Puzzle {
       if (Object.hasOwn(current.options, label)) fail(lineNo, `Duplicate option ${label}`);
       current.options[label] = option[2] === '?' ? null
         : LABELS.includes(option[2] as Label) ? option[2] as Label
-        : option[2].startsWith('ref(') ? parsePrompt(option[2]).target
+        : option[2].startsWith('ref(') ? { kind: 'ref', question: Number(option[2].slice(4, -1)) }
         : Number(option[2]);
       continue;
     }
@@ -104,6 +105,9 @@ export function parsePuzzle(source: string, filename = '<text>'): Puzzle {
     }
     const unknowns = LABELS.filter(label => question.options[label] === null).length;
     if (unknowns !== 0 && unknowns !== LABELS.length) throw new Error(`${filename}: ${puzzle.id} question ${question.id} must have either five concrete values or five ? marks`);
+    if (question.prompt.kind === 'unknown' && unknowns !== LABELS.length) {
+      throw new Error(filename + ': ' + puzzle.id + ' question ' + question.id + ' requires five ? marks for a ? prompt');
+    }
     if (unknowns === 0) {
       const numeric = question.prompt.kind === 'count';
       if (LABELS.some(label => numeric
@@ -112,7 +116,7 @@ export function parsePuzzle(source: string, filename = '<text>'): Puzzle {
         throw new Error(`${filename}: ${puzzle.id} question ${question.id} requires five ${numeric ? 'numbers for a count prompt' : 'A–E labels or ref(n) values for an answer prompt'}`);
       }
     }
-    const targets = [question.prompt.target, ...LABELS.flatMap(label => {
+    const targets = [...(question.prompt.kind === 'unknown' ? [] : [question.prompt.target]), ...LABELS.flatMap(label => {
       const value = question.options[label];
       return value !== null && typeof value === 'object' ? [value] : [];
     })];
@@ -155,5 +159,14 @@ export function parseChapter(source: string, filename = '<text>'): Chapter {
   }
   const ids = puzzles.map(puzzle => puzzle.id);
   if (new Set(ids).size !== ids.length) throw new Error(`${filename}: duplicate puzzle ID`);
+  for (const kind of ['Q', 'Example']) {
+    const numeric = puzzles.filter(puzzle => new RegExp('^' + kind + '[1-9]\\d*-[1-9]\\d*$').test(puzzle.id));
+    numeric.forEach((puzzle, index) => {
+      if (Number(puzzle.id.split('-')[1]) !== index + 1) {
+        throw new Error(filename + ': numeric ' + kind + ' IDs must be consecutive from 1; expected '
+          + kind + heading[1] + '-' + (index + 1) + ', actual ' + puzzle.id);
+      }
+    });
+  }
   return { id: Number(heading[1]), puzzles };
 }

@@ -14,5 +14,9 @@ export function checkCompleted(puzzles: readonly Puzzle[], solutions: Readonly<R
   return result;
 }
 
+export function isChapterComplete(puzzles: readonly Puzzle[], result: CheckResult): boolean {
+  return puzzles.length > 0 && puzzles.every(puzzle => result[puzzle.id] === 'correct');
+}
+
 export function beginCooldown(now: number): number { return now + COOLDOWN_MS; }
 export function canCheck(now: number, until: number): boolean { return now >= until; }

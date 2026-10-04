@@ -2,7 +2,8 @@ import { LABELS, type Label, type Puzzle } from '../puzzle/types';
 import { storedPuzzleValue } from '../puzzle/ids';
 import { emptyMarking, type QuestionMarking } from './markings';
 
-export const STORAGE_KEY = 'self-referential-puzzle-progress-v2';
+export const STORAGE_KEY = 'self-referential-puzzle-progress-v3';
+export const PREVIOUS_STORAGE_KEY = 'self-referential-puzzle-progress-v2';
 export const LEGACY_STORAGE_KEY = 'self-referential-puzzle-progress-v1';
 export type Progress = Record<string, QuestionMarking[]>;
 
@@ -59,5 +60,6 @@ export function saveProgress(storage: Pick<Storage, 'setItem'>, progress: Progre
 
 export function clearProgress(storage: Pick<Storage, 'removeItem'>): void {
   storage.removeItem(STORAGE_KEY);
+  storage.removeItem(PREVIOUS_STORAGE_KEY);
   storage.removeItem(LEGACY_STORAGE_KEY);
 }

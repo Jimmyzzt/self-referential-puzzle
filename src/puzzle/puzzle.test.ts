@@ -41,7 +41,9 @@ describe('solver semantics', () => {
   });
   it('resolves self and mutual references from the complete assignment', () => {
     const self = puzzle(question(1, '#self', [1,0,0,0,0]));
-    expect(evaluateOption(self.questions[0].prompt.target, ['A'], 0)).toBe('A');
+    const prompt = self.questions[0].prompt;
+    if (prompt.kind !== 'count') throw new Error('Expected a count prompt');
+    expect(evaluateOption(prompt.target, ['A'], 0)).toBe('A');
     expect(solvePuzzle(self).solutions).toContain('A');
     const mutual = puzzle(`${question(1, '#ref(2)', [1,1,1,1,1])}\n${question(2, '#ref(1)', [1,1,1,1,1])}`);
     expect(isSolution(mutual, ['A','A'])).toBe(false);

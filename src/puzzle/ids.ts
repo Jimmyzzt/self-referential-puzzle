@@ -1,5 +1,20 @@
 import type { Chapter, Puzzle } from './types';
 
+// Q4-4 was removed; the former Q4-5 now fills its number.
+// Use only while importing the previous storage version, since the old Q4-4 is a different puzzle.
+export function migrateChapter4Raw(raw: string | null): string | null {
+  if (raw === null) return null;
+  try {
+    const source: unknown = JSON.parse(raw);
+    if (!source || typeof source !== 'object' || Array.isArray(source)) return raw;
+    const next = { ...source } as Record<string, unknown>;
+    delete next['Q4-4'];
+    if (Object.hasOwn(next, 'Q4-5')) next['Q4-4'] = next['Q4-5'];
+    delete next['Q4-5'];
+    return JSON.stringify(next);
+  } catch { return raw; }
+}
+
 // Only the two PDF chapters had globally numbered IDs before this migration.
 export function legacyPuzzleId(puzzle: Puzzle): string | undefined {
   if (puzzle.id === 'Q2-A') return 'Q15';

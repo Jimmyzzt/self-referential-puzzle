@@ -6,16 +6,22 @@
   "scripts": {
     "dev": "vite",
     "test": "vitest run",
-    "build": "tsc -b && vite build",
+    "build": "tsx scripts/build-stats-catalog.ts && tsc -b && tsc -p workers/tsconfig.json && vite build",
     "build:itch": "tsx scripts/build-itch.ts",
     "puzzles:validate": "tsx scripts/validate-puzzles.ts",
-    "puzzles:solve": "tsx scripts/solve-puzzle.ts"
+    "puzzles:solve": "tsx scripts/solve-puzzle.ts",
+    "stats": "tsx scripts/stats.ts",
+    "stats:catalog": "tsx scripts/build-stats-catalog.ts",
+    "dev:worker": "wrangler dev",
+    "types:worker": "wrangler types workers/bindings.d.ts --include-runtime false",
+    "deploy:worker": "wrangler deploy && wrangler d1 migrations apply STATS --remote"
   },
   "dependencies": {
     "react": "^19.1.1",
     "react-dom": "^19.1.1"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261004.1",
     "@types/node": "^24.5.2",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
@@ -24,6 +30,7 @@
     "tsx": "^4.20.6",
     "typescript": "~5.9.2",
     "vite": "^7.1.7",
-    "vitest": "^5.0.2"
+    "vitest": "^5.0.2",
+    "wrangler": "^4.147.0"
   }
 }

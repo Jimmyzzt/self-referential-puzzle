@@ -22,5 +22,5 @@ export default defineConfig({
     },
   }],
   base: process.env.VITE_BASE_PATH ?? './',
-  test: { environment: 'node', include: ['src/**/*.test.ts'] },
+  test: { environment: 'node', include: ['src/**/*.test.ts', 'workers/**/*.test.ts'] },
 });

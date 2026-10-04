@@ -4,7 +4,8 @@ import type { Progress } from './persistence';
 
 export type CheckedAnswers = Record<string, string>;
 export type PuzzleStatus = 'pending' | 'ready' | 'correct' | 'wrong';
-export const CHECKED_KEY = 'self-referential-puzzle-checked-v1';
+export const CHECKED_KEY = 'self-referential-puzzle-checked-v2';
+export const PREVIOUS_CHECKED_KEY = 'self-referential-puzzle-checked-v1';
 
 export function currentAnswer(progress: Progress, puzzle: Puzzle): string | null {
   const marks = progress[puzzle.id];
