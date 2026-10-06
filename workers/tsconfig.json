@@ -10,5 +10,5 @@
     "resolveJsonModule": true,
     "skipLibCheck": true
   },
-  "include": ["index.ts", "handler.ts", "bindings.d.ts"]
+  "include": ["index.ts", "handler.ts", "analytics.ts", "bindings.d.ts"]
 }

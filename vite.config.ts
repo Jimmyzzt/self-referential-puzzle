@@ -22,5 +22,7 @@ export default defineConfig({
     },
   }],
   base: process.env.VITE_BASE_PATH ?? './',
+  build: { rollupOptions: { input: { book: resolve('index.html'), stats: resolve('stats/index.html') } } },
+  server: { proxy: { '/api': 'http://127.0.0.1:8787' } },
   test: { environment: 'node', include: ['src/**/*.test.ts', 'workers/**/*.test.ts'] },
 });

@@ -129,7 +129,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .chapter-reset { justify-content: center; }
 .completion-dialog { width: min(430px,calc(100% - 32px)); max-height: calc(100dvh - 32px); padding: 32px 26px 26px; border: 1px solid #c7d4c8; border-radius: 10px; background: #fffdf8; color: #26342f; box-shadow: 0 20px 65px #18392b40; text-align: center; }
 .completion-dialog::backdrop { background: #1c332b80; }
-.completion-dialog h2 { margin: 0 0 26px; font: normal clamp(26px,6vw,34px)/1.2 Georgia,serif; }
+.completion-dialog h2 { margin: 0 0 12px; font: normal clamp(26px,6vw,34px)/1.2 Georgia,serif; }
+.completion-subtitle { margin: 0 0 26px; color: #5d6f61; font-size: 13px; line-height: 1.6; }
 .completion-feedback { margin: -6px 0 26px; font-size: 14px; line-height: 1.7; color: #5d6f61; }
 .completion-feedback p { margin: 0; }
 .completion-feedback a { color: #276651; font-weight: 700; text-underline-offset: 3px; }

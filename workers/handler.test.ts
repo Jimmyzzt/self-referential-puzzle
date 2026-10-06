@@ -3,6 +3,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
 import { createHandler, type Env } from './handler';
 import { type Catalog, type CheckEvent } from '../src/stats/protocol';
+import type { StatsSnapshot } from '../src/stats/analysis';
 
 const schema = readFileSync('workers/migrations/0001_checks.sql', 'utf8').split(';').map(sql => sql.trim()).filter(Boolean);
 const revision = 'a'.repeat(64);
@@ -21,7 +22,10 @@ beforeEach(() => {
     const statement = {
       bind(...args: (string | number | null)[]) { values = args; return statement; },
       async first() { return sqlite.prepare(sql).get(...values) ?? null; },
-      execute() { return sqlite.prepare(sql).run(...values); },
+      execute() {
+        const query = sqlite.prepare(sql);
+        return query.columns().length ? { results: query.all(...values) } : { results: [], meta: query.run(...values) };
+      },
     };
     return statement;
   }
@@ -50,6 +54,45 @@ function post(payload: unknown, origin = 'https://jimmyzzt.github.io') {
 }
 
 describe('D1 statistics endpoint', () => {
+  it('returns zero counts for an empty book, supports Pages CORS and exposes no raw players or solutions', async () => {
+    const response = await handler.fetch(new Request('https://self-refp.zzt.si/api/stats', { headers: { Origin: 'https://jimmyzzt.github.io' } }), env);
+    expect(response.status).toBe(200);
+    expect(response.headers.get('Access-Control-Allow-Origin')).toBe('https://jimmyzzt.github.io');
+    const snapshot = await response.json() as StatsSnapshot;
+    expect(snapshot.summary.players).toBe(0);
+    expect(snapshot.puzzles).toHaveLength(10);
+    expect(snapshot.puzzles[0].counts.players).toBe(0);
+    expect(snapshot.chapters).toEqual([{ chapter: 1, players: 0, completed: 0 }]);
+    expect(JSON.stringify(snapshot)).not.toMatch(/player_id|playerId|solution|accuracy_pct/);
+    expect((await handler.fetch(new Request('https://self-refp.zzt.si/api/stats', {headers:{Origin:'https://other.example'}}), env)).status).toBe(403);
+  });
+
+  it('analyses current versions with distinct players, retries, leave-one-out cohorts and chapter completion', async () => {
+    const high = crypto.randomUUID();
+    const ordinary = crypto.randomUUID();
+    const newcomer = crypto.randomUUID();
+    const all = (right: number): [string, string][] => Array.from({ length: 10 }, (_, index) => ['Q1-' + (index + 1), index < right ? 'A' : 'B']);
+    await post(event(high, all(10)));
+    await post(event(ordinary, all(2)));
+    await post(event(newcomer, [['Q1-1', 'B']]));
+    const retry = event(newcomer, [['Q1-1', 'A']]);
+    await post(retry); await post(retry);
+    const response = await handler.fetch(new Request('https://self-refp.zzt.si/api/stats'), env);
+    const snapshot = await response.json() as StatsSnapshot;
+    expect(snapshot.summary).toMatchObject({ players: 3, checks: 22, events: 4, returningPlayers: 1 });
+    expect(snapshot.chapters).toEqual([{ chapter: 1, players: 3, completed: 1 }]);
+    expect(snapshot.puzzles[0].counts).toEqual({players:3, firstCorrect:2, checks:4, correctChecks:3, solved:3, recovered:1});
+    expect(snapshot.puzzles[0].cohorts.high.players).toBe(1);
+    expect(snapshot.puzzles[0].cohorts.ordinary.players).toBe(1);
+    expect(snapshot.puzzles[0].cohorts.insufficient).toMatchObject({players:1,firstCorrect:0,solved:1});
+    expect(snapshot.activity[0]).toMatchObject({players:3, checks:22, events:4});
+    expect(snapshot.distribution).toEqual(expect.arrayContaining([{band:'1–3',players:1},{band:'9–16',players:2}]));
+    const changed = createHandler({ ...catalog, 'Q1-1': { ...catalog['Q1-1'], revision: 'b'.repeat(64) } }, schema);
+    const changedSnapshot = await (await changed.fetch(new Request('https://self-refp.zzt.si/api/stats'), env)).json() as StatsSnapshot;
+    expect(changedSnapshot.puzzles[0].counts.players).toBe(0);
+    expect(changedSnapshot.summary.players).toBe(2);
+    expect(changedSnapshot.chapters[0].completed).toBe(0);
+  });
   it('accepts both Worker origins and Pages preflights, rejects other origins, and delegates assets', async () => {
     for (const origin of ['https://jimmyzzt.github.io', 'https://self-refp.zzt.si', 'https://self-referential-puzzle.mocking-jimmy.workers.dev']) {
       const response = await handler.fetch(new Request('https://self-refp.zzt.si/api/check', {

@@ -75,7 +75,10 @@ function CheckButton({ disabled, seconds, onClick, className = '' }: {
 export default function App() {
   const [progress, setProgress] = useState<Progress>(readProgress);
   const [checked, setChecked] = useState<CheckedAnswers>(() => readChecked(progress));
-  const [chapterIndex, setChapterIndex] = useState(0);
+  const [chapterIndex, setChapterIndex] = useState(() => {
+    const index = chapters.findIndex(item => item.puzzles.some(puzzle => puzzle.id === location.hash.slice(1)));
+    return Math.max(0, index);
+  });
   const [statusOpen, setStatusOpen] = useState(() => !window.matchMedia('(max-width: 1050px)').matches);
   const [showHeaderProgress, setShowHeaderProgress] = useState(false);
   const [headerStatusOpen, setHeaderStatusOpen] = useState(false);
@@ -91,6 +94,20 @@ export default function App() {
   const headerRef = useRef<HTMLElement | null>(null);
   const statusRef = useRef<HTMLElement | null>(null);
   const chapter = chapters[chapterIndex];
+
+  useEffect(() => {
+    function followPuzzleLink() {
+      const id = location.hash.slice(1);
+      const index = chapters.findIndex(item => item.puzzles.some(puzzle => puzzle.id === id));
+      if (index >= 0) {
+        setChapterIndex(index);
+        window.requestAnimationFrame(() => document.getElementById(id)?.scrollIntoView({ block: 'start' }));
+      }
+    }
+    followPuzzleLink();
+    window.addEventListener('hashchange', followPuzzleLink);
+    return () => window.removeEventListener('hashchange', followPuzzleLink);
+  }, []);
 
   useEffect(() => {
     try { saveProgress(localStorage, progress); } catch { /* Storage is optional. */ }

@@ -30,7 +30,8 @@ export function CompletionDialog({ finalChapter, onDismiss, onNext, feedback }: 
 
   return <dialog ref={dialogRef} className="completion-dialog" aria-labelledby={titleId}
     onCancel={event => { event.preventDefault(); onDismiss(); }}>
-    <h2 id={titleId}>{finalChapter ? 'Thanks for playing!' : '🎉 Congrats!'}</h2>
+    <h2 id={titleId}>{finalChapter ? 'Thanks for playing!' : '🎉 Congrats! 🎉'}</h2>
+    <p className="completion-subtitle">You solved every puzzle in this chapter correctly.</p>
     {finalChapter && <div className="completion-feedback">{feedback}</div>}
     <div className="completion-actions">
       <button ref={dismissRef} type="button" className="completion-back" onClick={onDismiss}>{finalChapter ? 'yeah' : 'Yeah'}</button>
